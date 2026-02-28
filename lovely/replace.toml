@@ -91,6 +91,15 @@ function MenuMusicManager:play()
 			:setBPM(mods.customsounds.config.music.menuloopBPM)
 			:setLooping(true)
 			:play()
+
+        local offset = mods.customsounds.config.music.menuloopOffset / 1000
+
+        if offset >= 0 then
+            self.music.source:seek(offset)
+            self.music:setTime(offset)
+        else 
+            self.music:setTime(offset)
+        end
 	end
 end
 '''
@@ -136,6 +145,8 @@ target = "states/Error.lua"
 pattern = '''
 st:setInit(function(self)
 	self.errorMessage = self.errorMessage or 'No error provided???'
+	log('In-level error screen!','error')
+	log(self.errorMessage,'error')
 	self.errorSprite = ez.newjson('assets/error/error'):instance()
 	shuv.resetPal()
 	te.play('assets/music/caution.ogg','stream','music')
@@ -153,6 +164,8 @@ st:setInit(function(self)
     end
 
 	self.errorMessage = self.errorMessage or 'No error provided???'
+	log('In-level error screen!','error')
+	log(self.errorMessage,'error')
 	self.errorSprite = ez.newjson('assets/error/error'):instance()
 	shuv.resetPal()
 	te.play(audioPath,'stream','music')
