@@ -1,4 +1,4 @@
-{"id":"customsounds","version":"1.0","author":"gooberlemonade","name":"Custom Sounds","config":{"music":{"caution":"default","menuloop":"default","menuloopBPM":108}
-,"sfx":{"pause":"default","hover":"default","mine":"default","barely":"default","side":"default","block":"default","tap":"default","click":"default","miss":"default","hold":"default"}
+{"author":"gooberlemonade","description":"Allows for replacing sound effects and music in game","name":"Custom Sounds","enabled":true,"config":{"music":{"caution":"default","menuloopBPM":108,"menuloopOffset":0,"menuloop":"default"}
+,"sfx":{"pause":"default","miss":"default","hold":"default","hover":"default","mine":"default","barely":"default","click":"default","side":"default","block":"default","tap":"default"}
 }
-,"enabled":true,"description":"Allows for replacing sound effects and music in game"}
+,"version":"1.1","id":"customsounds"}
