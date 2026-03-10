@@ -1,4 +1,45 @@
-{"author":"gooberlemonade","description":"Allows for replacing sound effects and music in game","name":"Custom Sounds","enabled":true,"config":{"music":{"caution":"default","menuloopBPM":108,"menuloopOffset":0,"menuloop":"default"}
-,"sfx":{"pause":"default","miss":"default","hold":"default","hover":"default","mine":"default","barely":"default","click":"default","side":"default","block":"default","tap":"default"}
+{
+    "id":"lemontweaks",
+    "name":"lemontweaks",
+    "author":"gooberlemonade",
+    "description":"Adds many random quality of life features and tweaks",
+    "enabled":true,
+    "config":{
+        "customsounds":{
+            "music":{
+                "useCustomPlayer":true,
+                "caution":"default",
+                "menuloopBPM":108,
+                "menuloopOffset":0,
+                "menuloop":"default"
+            },
+            "sfx":{
+                "mine":"default",
+                "barely":"default",
+                "pause":"default",
+                "side":"default",
+                "block":"default",
+                "tap":"default",
+                "click":"default",
+                "miss":"default",
+                "hold":"default",
+                "hover":"default"
+            }
+        },
+        "misc":{
+            "customwiplevels":false,
+            "nodiscord":false
+        },
+        "chartprog":{
+            "useVFXcolor":true,
+            "showDecimalPercentage":false,
+            "showPercentage":false,
+            "reverseDirection":false,
+            "centerBar":false,
+            "topBar":false,
+            "barHeight":6,
+            "bottomBar":false
+        }
+    },
+    "version":"2.0"
 }
-,"version":"1.1","id":"customsounds"}
