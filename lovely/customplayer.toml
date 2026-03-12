@@ -132,11 +132,7 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
         local currentSongInfo = cs.menuMusicManager:getInfo()
 
         if currentSongInfo.playhead - mods.lemontweaks.fetchedLevels[mods.lemontweaks.current].offset < 3 then
-            mods.lemontweaks.current = mods.lemontweaks.current - 1
-        end
-
-        if mods.lemontweaks.current < 1 then
-            mods.lemontweaks.current = #mods.lemontweaks.fetchedLevels
+            mods.lemontweaks.current = mods.lemontweaks.current - 2
         end
 
         cs.menuMusicManager:stop()
@@ -144,12 +140,6 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
     end)
     love.graphics.print(songArtist .. ' - ' .. songName, mods.lemontweaks.menuX + 5 + playerIconPadding * 3, 34)
     mods.lemontweaks.helperImgButton(sprites.player.forward, mods.lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 3, 33, function() 
-        mods.lemontweaks.current = mods.lemontweaks.current + 1
-
-        if mods.lemontweaks.current > #mods.lemontweaks.fetchedLevels then
-            mods.lemontweaks.current = 1
-        end
-
         cs.menuMusicManager:stop()
         cs.menuMusicManager:play()
     end)
