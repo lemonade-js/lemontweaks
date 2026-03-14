@@ -117,7 +117,7 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
         cs.menuMusicManager:seek(lemontweaks.menuloopInfo.playhead)
     end
 
-    lemontweaks.helperImgButton(pauseIcon, lemontweaks.menuX + 5 + playerIconPadding * 1, 33, function() 
+    lemontweaks.helperImgButton(pauseIcon, lemontweaks.menuX + 5 + playerIconPadding * 1, 33, function()
         lemontweaks.menuPlaying = not lemontweaks.menuPlaying
 
         if lemontweaks.menuPlaying then
@@ -128,7 +128,7 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
             cs.menuMusicManager:forceMute()
         end
     end)
-    lemontweaks.helperImgButton(sprites.player.back, lemontweaks.menuX + 5 + playerIconPadding * 2, 33, function() 
+    lemontweaks.helperImgButton(sprites.player.back, lemontweaks.menuX + 5 + playerIconPadding * 2, 33, function()
         local currentSongInfo = cs.menuMusicManager:getInfo()
 
         if currentSongInfo.playhead - lemontweaks.fetchedLevels[lemontweaks.current].offset < 3 then
@@ -139,12 +139,12 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
         cs.menuMusicManager:play()
     end)
     love.graphics.print(songArtist .. ' - ' .. songName, lemontweaks.menuX + 5 + playerIconPadding * 3, 34)
-    lemontweaks.helperImgButton(sprites.player.forward, lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 3, 33, function() 
+    lemontweaks.helperImgButton(sprites.player.forward, lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 3, 33, function()
         cs.menuMusicManager:stop()
         cs.menuMusicManager:play()
     end)
     love.graphics.rectangle('fill', lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 4, 26, 1, 30)
-    lemontweaks.helperImgButton(sprites.player.menu, lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 16 + playerIconPadding * 4, 33, function() 
+    lemontweaks.helperImgButton(sprites.player.menu, lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 16 + playerIconPadding * 4, 33, function()
         lemontweaks.menuOpen = not lemontweaks.menuOpen
         lemontweaks.moveMenu = true
     end)
@@ -164,7 +164,7 @@ target = "states/SongSelect.lua"
 pattern = '''self.menuMusicManager:forceUnmute()'''
 position = "at"
 payload = '''
-if lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then 
+if lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then
     self.menuMusicManager:forceUnmute()
 else
     self.menuMusicManager:forceMute()
@@ -179,7 +179,7 @@ target = "states/Costumes.lua"
 pattern = '''self.menuMusicManager:forceUnmute()'''
 position = "at"
 payload = '''
-if lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then 
+if lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then
     self.menuMusicManager:forceUnmute()
 else
     self.menuMusicManager:forceMute()
@@ -194,7 +194,7 @@ target = "states/AtomMap.lua"
 pattern = '''self.menuMusicManager:forceUnmute()'''
 position = "at"
 payload = '''
-if lemontweaks.menuPlaying or not lemontweaks.config.customsounds.music.useCustomPlayer then 
+if lemontweaks.menuPlaying or not lemontweaks.config.customsounds.music.useCustomPlayer then
     self.menuMusicManager:forceUnmute()
 else
     self.menuMusicManager:forceMute()
@@ -209,7 +209,7 @@ target = "states/AchievementViewer.lua"
 pattern = '''self.menuMusicManager:forceUnmute()'''
 position = "at"
 payload = '''
-if lemontweaks.menuPlaying or not lemontweaks.config.customsounds.music.useCustomPlayer then 
+if lemontweaks.menuPlaying or not lemontweaks.config.customsounds.music.useCustomPlayer then
     self.menuMusicManager:forceUnmute()
 else
     self.menuMusicManager:forceMute()
@@ -231,13 +231,4 @@ if lemontweaks == nil then
     cs.menuMusicManager:initCustomPlayer()
 end
 '''
-match_indent = true
-
-# i just need the dump
-[[patches]]
-[patches.pattern]
-target = "lib/dpf.lua"
-pattern = '''print'''
-position = "at"
-payload = '''print'''
 match_indent = true
