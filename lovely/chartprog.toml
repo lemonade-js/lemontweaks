@@ -79,7 +79,9 @@ if cs.fsrBeat ~= nil then
 
     love.graphics.setFont(fonts.digitalDisco)
 
-    love.graphics.print(percent .. "%", 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+    if mods.lemontweaks.config.chartprog.showPercentage then
+        love.graphics.print(percent .. "%", 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+    end
 end
 '''
 match_indent = true
