@@ -342,18 +342,25 @@ end
 local function getAllLevels()
     local levels = {}
     local workshopPath = love.filesystem.getRealDirectory("Workshop/");
-    local folders = mods.lemontweaks.nativefs.getDirectoryItems(workshopPath)
+
+	if lemontweaks.didINIT then
+		print("mod has init")
+	else
+		print("mod has not init")
+	end
+
+    local folders = lemontweaks.nativefs.getDirectoryItems(workshopPath)
     
     for _, folder in ipairs(folders) do
 
         local levelPath = workshopPath .. "/" .. folder
 
-        if mods.lemontweaks.nativefs.getInfo(levelPath .. "/level.json") then
-            local levelDat = json.decode(mods.lemontweaks.nativefs.read(levelPath .. "/level.json"))
+        if lemontweaks.nativefs.getInfo(levelPath .. "/level.json") then
+            local levelDat = json.decode(lemontweaks.nativefs.read(levelPath .. "/level.json"))
             local manifestDat
 
-            if mods.lemontweaks.nativefs.getInfo(levelPath .. "/manifest.json")  then
-                manifestDat = json.decode(mods.lemontweaks.nativefs.read(levelPath .. "/manifest.json"))
+            if lemontweaks.nativefs.getInfo(levelPath .. "/manifest.json")  then
+                manifestDat = json.decode(lemontweaks.nativefs.read(levelPath .. "/manifest.json"))
             else
                 -- old level fix
                 manifestDat = levelDat
@@ -387,20 +394,20 @@ end
 
 function MenuMusicManager:initCustomPlayer()
     local fetchedLevels = getAllLevels()
-    mods.lemontweaks.fetchedLevels = shuffle(fetchedLevels)
+    lemontweaks.fetchedLevels = shuffle(fetchedLevels)
 
-    mods.lemontweaks.current = #mods.lemontweaks.fetchedLevels
+    lemontweaks.current = #lemontweaks.fetchedLevels
 end
 
 function MenuMusicManager:play()
-	mods.lemontweaks.current = mods.lemontweaks.current + 1
+	lemontweaks.current = lemontweaks.current + 1
 
-	if mods.lemontweaks.current > #mods.lemontweaks.fetchedLevels then
-		mods.lemontweaks.current = 1
+	if lemontweaks.current > #lemontweaks.fetchedLevels then
+		lemontweaks.current = 1
 	end
 
-	if mods.lemontweaks.current < 1 then
-        mods.lemontweaks.current = #mods.lemontweaks.fetchedLevels
+	if lemontweaks.current < 1 then
+        lemontweaks.current = #lemontweaks.fetchedLevels
     end
 
 	if savedata.options.audio.playMenuMusic then
@@ -417,15 +424,15 @@ function MenuMusicManager:play()
         end
 
 		if mods.lemontweaks.config.customsounds.music.useCustomPlayer then 
-			print(json.encode(mods.lemontweaks.fetchedLevels[mods.lemontweaks.current]))
-            audioPath = mods.lemontweaks.fetchedLevels[mods.lemontweaks.current].file
+			print(json.encode(lemontweaks.fetchedLevels[lemontweaks.current]))
+            audioPath = lemontweaks.fetchedLevels[lemontweaks.current].file
 			loop = false
-            bpm = mods.lemontweaks.fetchedLevels[mods.lemontweaks.current].bpm
-            offset = mods.lemontweaks.fetchedLevels[mods.lemontweaks.current].offset * 1000
+            bpm = lemontweaks.fetchedLevels[lemontweaks.current].bpm
+            offset = lemontweaks.fetchedLevels[lemontweaks.current].offset * 1000
 		end
 
         if audioPath:match("^%a:[/\\]") then
-            local fileData, error = mods.lemontweaks.nativefs.newFileData(audioPath)
+            local fileData, error = lemontweaks.nativefs.newFileData(audioPath)
             if not fileData then
                 error("Failed to load audio: " .. tostring(error))
             end
@@ -458,10 +465,10 @@ function MenuMusicManager:getUpdate()
         if time + 0.5 >= duration then
             print("song ended")
 
-			mods.lemontweaks.current = mods.lemontweaks.current + 1
+			lemontweaks.current = lemontweaks.current + 1
 
-			if mods.lemontweaks.current > #mods.lemontweaks.fetchedLevels then
-				mods.lemontweaks.current = 1
+			if lemontweaks.current > #lemontweaks.fetchedLevels then
+				lemontweaks.current = 1
 			end
 
 			self:stop()
