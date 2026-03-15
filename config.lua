@@ -298,6 +298,9 @@ if imgui.TreeNode_Str("Custom Player") then
     mod.config.customsounds.music.useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
 	helpers.imguiHelpMarker("Randomly shuffles songs from installed maps, no need to pick your favorite")
 
+    mod.config.customsounds.music.repeatSameSong = helpers.InputBool("Repeat Single Song", mod.config.customsounds.music.repeatSameSong)
+	helpers.imguiHelpMarker("Prevents the player from automatically advancing the song")
+
     imgui.NewLine()
     imgui.Separator()
     imgui.NewLine()
@@ -312,7 +315,8 @@ if imgui.TreeNode_Str("Custom Player") then
 			local current = lemontweaks.fetchedLevels[lemontweaks.current]
 			if i ~= 1 then imgui.Separator() end
 			if imgui.Selectable_Bool((data.artist or "unknown"):gsub("%b[]", "") .. " - " .. (data.name or "unknown"):gsub("%b[]", ""), data == current) then
-				lemontweaks.current = (data.index or 1) - 1
+				lemontweaks.current = data.index or 1
+				lemontweaks.tempDontAdvance = true
 				current = lemontweaks.fetchedLevels[lemontweaks.current]
 				-- print("[lemontweaks] Set index to " .. lemontweaks.current .. " " .. (current.artist or "unknown"):gsub("%b[]", "") .. " - " .. (current.name or "unknown"):gsub("%b[]", ""))
 

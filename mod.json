@@ -8,6 +8,7 @@
         "customsounds":{
             "music":{
                 "useCustomPlayer":true,
+                "repeatSameSong":false,
                 "caution":"default",
                 "menuloopBPM":108,
                 "menuloopOffset":0,
@@ -41,5 +42,5 @@
             "bottomBar":false
         }
     },
-    "version":"2.4"
+    "version":"2.5"
 }

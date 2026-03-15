@@ -321,13 +321,6 @@ if self.music and self.music.source and mods.lemontweaks.config.customsounds.mus
 
 	if time + 0.5 >= duration then
 		print("song ended")
-
-		lemontweaks.current = lemontweaks.current + 1
-
-		if lemontweaks.current > #lemontweaks.fetchedLevels then
-			lemontweaks.current = 1
-		end
-
 		self:stop()
 		self:play()
 	end
@@ -376,8 +369,9 @@ lemontweaks.nativefs = lemontweaks.nativefs or require("Mods.lemontweaks.depende
 lemontweaks.menuOpen = lemontweaks.menuOpen or false
 lemontweaks.mouseWasDown = lemontweaks.mouseWasDown or false
 lemontweaks.moveMenu = lemontweaks.moveMenu or false
-lemontweaks.current = 0
-lemontweaks.levellist = {}
+lemontweaks.tempDontAdvance = lemontweaks.tempDontAdvance or false
+lemontweaks.current = lemontweaks.current or 0
+lemontweaks.levellist = lemontweaks.levellist or {}
 
 -- me: *not knowing what to do*
 -- some random roblox forum: i gotchu bbg
@@ -392,6 +386,27 @@ function lemontweaks.shuffle(array)
 	end
 
 	return deck
+end
+lemontweaks.helperOutlineRect = function(x, y, w, h)
+    color(1)
+    love.graphics.rectangle('fill', x - 1, y - 1, w + 2, h + 2)
+    color(0)
+    love.graphics.rectangle('fill', x, y, w, h)
+end
+lemontweaks.helperImgButton = function(sprite, x, y, run, mouseJustPressed)
+    love.graphics.draw(sprite, x, y)
+
+    local w = sprite:getWidth()
+    local h = sprite:getHeight()
+
+    local mx = mouse.rx
+    local my = mouse.ry
+
+    if mouseJustPressed then
+        if mx >= x and mx <= x + w and my >= y and my <= y + h then
+            run()
+        end
+    end
 end
 local function getAllLevels()
     local levels = {}
@@ -459,7 +474,10 @@ fonts.digitalDiscoBold = fonts.digitalDiscoBold or love.graphics.newFont("Mods/l
 -- initializing end
 
 function MenuMusicManager:play()
-	lemontweaks.current = lemontweaks.current + 1
+	if not mods.lemontweaks.config.customsounds.music.repeatSameSong and not lemontweaks.tempDontAdvance then
+		lemontweaks.current = lemontweaks.current + 1
+	end
+	lemontweaks.tempDontAdvance = false
 
 	if lemontweaks.current > #lemontweaks.fetchedLevels then
 		lemontweaks.current = 1
@@ -469,7 +487,7 @@ function MenuMusicManager:play()
         lemontweaks.current = #lemontweaks.fetchedLevels
     end
 
-	lemontweaks.menuX = lemontweaks.menuOpen and -(fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 11 + playerIconPadding * 4) or 0
+	lemontweaks.menuX = lemontweaks.menuOpen and -(fonts.digitalDiscoBold:getWidth((lemontweaks.fetchedLevels[lemontweaks.current].artist or "unknown"):gsub("%b[]", "") .. " - " .. (lemontweaks.fetchedLevels[lemontweaks.current].name or "unknown"):gsub("%b[]", "")) + 11 + playerIconPadding * 4) or 0
 
 	if savedata.options.audio.playMenuMusic then
         local audioPath = 'assets/music/menuloop.ogg'
