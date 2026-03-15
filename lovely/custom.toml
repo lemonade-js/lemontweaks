@@ -487,7 +487,7 @@ function MenuMusicManager:play()
         lemontweaks.current = #lemontweaks.fetchedLevels
     end
 
-	lemontweaks.menuX = lemontweaks.menuOpen and -(fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 11 + playerIconPadding * 4) or 0
+	lemontweaks.menuX = lemontweaks.menuOpen and -(fonts.digitalDiscoBold:getWidth((lemontweaks.fetchedLevels[lemontweaks.current].artist or "unknown"):gsub("%b[]", "") .. " - " .. (lemontweaks.fetchedLevels[lemontweaks.current].name or "unknown"):gsub("%b[]", "")) + 11 + playerIconPadding * 4) or 0
 
 	if savedata.options.audio.playMenuMusic then
         local audioPath = 'assets/music/menuloop.ogg'
