@@ -218,6 +218,11 @@ if imgui.TreeNode_Str("Custom Sounds") then
 
                             mod.config.customsounds.music[customsounds.music[i].value] = sound
 
+							if customsounds.music[i].value == "menuloop" and not mod.config.customsounds.music.useCustomPlayer then
+								cs.menuMusicManager:stop()
+								cs.menuMusicManager:play()
+							end
+
                             --sounds:replaceSound(customsounds.music[i].value, "Mods/lemontweaks/customsounds/music/" .. customsounds.music[i].value .. "/" .. sound)
                         end
                     end
@@ -226,7 +231,12 @@ if imgui.TreeNode_Str("Custom Sounds") then
                 if customsounds.music[i].value == "menuloop" then
                     imgui.NewLine()
 
-                    mod.config.customsounds.music.useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
+					local useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
+					if mod.config.customsounds.music.useCustomPlayer ~= useCustomPlayer then
+						mod.config.customsounds.music.useCustomPlayer = useCustomPlayer
+						cs.menuMusicManager:stop()
+						cs.menuMusicManager:play()
+					end
                     helpers.imguiHelpMarker("Randomly shuffles songs from installed maps, no need to pick your favorite")
 
                     imgui.NewLine()
@@ -295,7 +305,12 @@ if imgui.TreeNode_Str("Custom Player") then
     imgui.Separator()
     imgui.NewLine()
 
-    mod.config.customsounds.music.useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
+	local useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
+	if mod.config.customsounds.music.useCustomPlayer ~= useCustomPlayer then
+		mod.config.customsounds.music.useCustomPlayer = useCustomPlayer
+		cs.menuMusicManager:stop()
+		cs.menuMusicManager:play()
+	end
 	helpers.imguiHelpMarker("Randomly shuffles songs from installed maps, no need to pick your favorite")
 
     mod.config.customsounds.music.repeatSameSong = helpers.InputBool("Repeat Single Song", mod.config.customsounds.music.repeatSameSong)

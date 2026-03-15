@@ -495,20 +495,16 @@ function MenuMusicManager:play()
 		local bpm = mods.lemontweaks.config.customsounds.music.menuloopBPM
 		local songOffset = mods.lemontweaks.config.customsounds.music.menuloopOffset
 
-        if mods.lemontweaks.config.customsounds.music.menuloop ~= "default"
-        and love.filesystem.getInfo("Mods/lemontweaks/customsounds/music/menuloop/" ..
-            mods.lemontweaks.config.customsounds.music.menuloop) then
-
-            audioPath = "Mods/lemontweaks/customsounds/music/menuloop/" .. mods.lemontweaks.config.customsounds.music.menuloop
-        end
-
 		if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
 			print(json.encode(lemontweaks.fetchedLevels[lemontweaks.current]))
             audioPath = lemontweaks.fetchedLevels[lemontweaks.current].file
 			loop = false
             bpm = lemontweaks.fetchedLevels[lemontweaks.current].bpm
             offset = lemontweaks.fetchedLevels[lemontweaks.current].offset * 1000
-		end
+		elseif mods.lemontweaks.config.customsounds.music.menuloop ~= "default" and love.filesystem.getInfo("Mods/lemontweaks/customsounds/music/menuloop/" .. mods.lemontweaks.config.customsounds.music.menuloop) then
+            audioPath = "Mods/lemontweaks/customsounds/music/menuloop/" .. mods.lemontweaks.config.customsounds.music.menuloop
+        end
+
 
         if audioPath:match("^%a:[/\\]") then
             local fileData, error = lemontweaks.nativefs.newFileData(audioPath)
