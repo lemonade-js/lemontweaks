@@ -312,7 +312,50 @@ match_indent = true
 
 [[patches]]
 [patches.pattern]
+match_indent = true
+pattern = '''if savedata.options.audio.musicvolume/10 ~= self.baseVolume then'''
+payload = '''
+if self.music and self.music.source and mods.lemontweaks.config.customsounds.music.useCustomPlayer then
+	local time = self.music.source:tell()
+	local duration = self.music.source:getDuration()
+
+	if time + 0.5 >= duration then
+		print("song ended")
+
+		lemontweaks.current = lemontweaks.current + 1
+
+		if lemontweaks.current > #lemontweaks.fetchedLevels then
+			lemontweaks.current = 1
+		end
+
+		self:stop()
+		self:play()
+	end
+end
+
+'''
+position = "before"
 target = "obj/MenuMusicManager.lua"
+
+[[patches]]
+[patches.pattern]
+match_indent = true
+pattern = '''function MenuMusicManager:forceUnmute()'''
+payload = '''
+	if lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then
+		-- nothing
+	else
+		self.menuMusicManager:forceMute()
+		self.menuMusicManager:seek(lemontweaks.menuloopInfo.playhead)
+		return
+	end
+'''
+position = "after"
+target = "obj/MenuMusicManager.lua"
+
+[[patches]]
+[patches.pattern]
+match_indent = true
 pattern = '''
 function MenuMusicManager:play()
 	if savedata.options.audio.playMenuMusic then
@@ -324,21 +367,32 @@ function MenuMusicManager:play()
 	end
 end
 '''
-position = "at"
 payload = '''
+
+-- Penta: Since were doing stupid stuff in here already, lets just initialize all of the lemontweaks customplayer here
+
+lemontweaks = lemontweaks or {}
+lemontweaks.nativefs = lemontweaks.nativefs or require("Mods.lemontweaks.dependencies.nativefs")
+lemontweaks.menuOpen = lemontweaks.menuOpen or false
+lemontweaks.mouseWasDown = lemontweaks.mouseWasDown or false
+lemontweaks.moveMenu = lemontweaks.moveMenu or false
+lemontweaks.current = 0
+lemontweaks.levellist = {}
+
 -- me: *not knowing what to do*
 -- some random roblox forum: i gotchu bbg
-local function shuffle(array)
+function lemontweaks.shuffle(array)
 	local deck = array
 
 	for i = #deck, 2, -1 do -- Start from the last card down to the second card
 		local j = math.random(1, i)  -- Select a random index between 1 and i
 		deck[i], deck[j] = deck[j], deck[i]  -- Swap the randomly selected card with the current card
+		deck[i].index = i
+		deck[j].index = j
 	end
 
 	return deck
 end
-
 local function getAllLevels()
     local levels = {}
     local workshopPath = love.filesystem.getRealDirectory("Workshop/");
@@ -350,7 +404,7 @@ local function getAllLevels()
 	end
 
     local folders = lemontweaks.nativefs.getDirectoryItems(workshopPath)
-    
+
     for _, folder in ipairs(folders) do
 
         local levelPath = workshopPath .. "/" .. folder
@@ -388,16 +442,21 @@ local function getAllLevels()
 			end
         end
     end
-    
+
     return levels
 end
 
-function MenuMusicManager:initCustomPlayer()
-    local fetchedLevels = getAllLevels()
-    lemontweaks.fetchedLevels = shuffle(fetchedLevels)
+local fetchedLevels = getAllLevels()
+table.sort(fetchedLevels, function(a, b)
+	return (a.artist or "unknown"):gsub("%b[]", "") .. " - " .. (a.name or "unknown"):gsub("%b[]", "") < (b.artist or "unknown"):gsub("%b[]", "") .. " - " .. (b.name or "unknown"):gsub("%b[]", "")
+end)
+for i, data in ipairs(fetchedLevels) do lemontweaks.levellist[i] = data end
+lemontweaks.fetchedLevels = lemontweaks.shuffle(fetchedLevels)
 
-    lemontweaks.current = #lemontweaks.fetchedLevels
-end
+math.randomseed(love.timer.getTime() * 100000)
+fonts.digitalDiscoBold = fonts.digitalDiscoBold or love.graphics.newFont("Mods/lemontweaks/assets/fonts/DigitalDisco.ttf", 16)
+
+-- initializing end
 
 function MenuMusicManager:play()
 	lemontweaks.current = lemontweaks.current + 1
@@ -409,6 +468,8 @@ function MenuMusicManager:play()
 	if lemontweaks.current < 1 then
         lemontweaks.current = #lemontweaks.fetchedLevels
     end
+
+	lemontweaks.menuX = lemontweaks.menuOpen and -(fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 11 + playerIconPadding * 4) or 0
 
 	if savedata.options.audio.playMenuMusic then
         local audioPath = 'assets/music/menuloop.ogg'
@@ -423,7 +484,7 @@ function MenuMusicManager:play()
             audioPath = "Mods/lemontweaks/customsounds/music/menuloop/" .. mods.lemontweaks.config.customsounds.music.menuloop
         end
 
-		if mods.lemontweaks.config.customsounds.music.useCustomPlayer then 
+		if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
 			print(json.encode(lemontweaks.fetchedLevels[lemontweaks.current]))
             audioPath = lemontweaks.fetchedLevels[lemontweaks.current].file
 			loop = false
@@ -457,26 +518,6 @@ function MenuMusicManager:play()
 	end
 end
 
-function MenuMusicManager:getUpdate()
-    if self.music and self.music.source and mods.lemontweaks.config.customsounds.music.useCustomPlayer then
-        local time = self.music.source:tell()
-        local duration = self.music.source:getDuration()
-
-        if time + 0.5 >= duration then
-            print("song ended")
-
-			lemontweaks.current = lemontweaks.current + 1
-
-			if lemontweaks.current > #lemontweaks.fetchedLevels then
-				lemontweaks.current = 1
-			end
-
-			self:stop()
-			self:play()
-        end
-    end
-end
-
 function MenuMusicManager:getInfo()
 	if self.music and self.music.source then
     	return { playhead = self.music.source:tell("seconds"), volume = self.music.source:getVolume() }
@@ -491,4 +532,5 @@ function MenuMusicManager:seek(time)
 	end
 end
 '''
-match_indent = true
+position = "at"
+target = "obj/MenuMusicManager.lua"

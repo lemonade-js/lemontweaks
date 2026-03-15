@@ -84,7 +84,7 @@ if imgui.TreeNode_Str("Chart Progress") then
     imgui.SetNextItemWidth(120)
     mod.config.chartprog.barHeight = helpers.InputInt("Bar thickness", mod.config.chartprog.barHeight)
     helpers.imguiHelpMarker("How tall the bars are")
-    
+
     imgui.NewLine()
     imgui.Separator()
     imgui.NewLine()
@@ -147,9 +147,9 @@ if imgui.TreeNode_Str("Custom Sounds") then
     end
 
     if imgui.BeginTabBar("sfxconfig") then
-        for i = 1, #customsounds.sfx, 1 do    
+        for i = 1, #customsounds.sfx, 1 do
             if imgui.BeginTabItem(customsounds.sfx[i].label .. "##sfxconfig") then
-        
+
                 local sounds = love.filesystem.getDirectoryItems("Mods/lemontweaks/customsounds/sfx/" .. customsounds.sfx[i].value)
 
                 imgui.Text("Selected: " .. mod.config.customsounds.sfx[customsounds.sfx[i].value]);
@@ -159,7 +159,7 @@ if imgui.TreeNode_Str("Custom Sounds") then
 
                     mod.config.customsounds.sfx[customsounds.sfx[i].value] = "default"
 
-                    sm:replaceSound(customsounds.sfx[i].value, customsounds.sfx[i].fallback) 
+                    sm:replaceSound(customsounds.sfx[i].value, customsounds.sfx[i].fallback)
                 end
 
                 imgui.NewLine()
@@ -168,9 +168,9 @@ if imgui.TreeNode_Str("Custom Sounds") then
                     if isAudio(sound) then
                         if imgui.Button(sound .. "##" .. customsounds.sfx[i].value) then
                             print("[lemontweaks] Set " .. customsounds.sfx[i].value .. " to " .. sound)
-                        
+
                             mod.config.customsounds.sfx[customsounds.sfx[i].value] = sound
-                        
+
                             sm:replaceSound(customsounds.sfx[i].value, "Mods/lemontweaks/customsounds/sfx/" .. customsounds.sfx[i].value .. "/" .. sound)
 
                             -- SFX previews!!!!!!!!
@@ -198,7 +198,7 @@ if imgui.TreeNode_Str("Custom Sounds") then
     if imgui.BeginTabBar("mconfig") then
         for i = 1, #customsounds.music, 1 do
             if imgui.BeginTabItem(customsounds.music[i].label .. "##mconfig") then
-        
+
                 local sounds = love.filesystem.getDirectoryItems("Mods/lemontweaks/customsounds/music/" .. customsounds.music[i].value)
 
                 imgui.Text("Selected: " .. mod.config.customsounds.music[customsounds.music[i].value]);
@@ -215,9 +215,9 @@ if imgui.TreeNode_Str("Custom Sounds") then
                     if isAudio(sound) then
                         if imgui.Button(sound .. "##" .. customsounds.music[i].value) then
                             print("[lemontweaks] Set " .. customsounds.music[i].value .. " to " .. sound)
-                        
+
                             mod.config.customsounds.music[customsounds.music[i].value] = sound
-                        
+
                             --sounds:replaceSound(customsounds.music[i].value, "Mods/lemontweaks/customsounds/music/" .. customsounds.music[i].value .. "/" .. sound)
                         end
                     end
@@ -228,7 +228,7 @@ if imgui.TreeNode_Str("Custom Sounds") then
 
                     mod.config.customsounds.music.useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
                     helpers.imguiHelpMarker("Randomly shuffles songs from installed maps, no need to pick your favorite")
-                    
+
                     imgui.NewLine()
 
                     if (mod.config.customsounds.music.useCustomPlayer) then
@@ -256,7 +256,7 @@ if imgui.TreeNode_Str("Custom Sounds") then
     imgui.Separator()
     imgui.NewLine()
 
-    if not compareTable(mod.sConfigState, mod.config.customsounds.music) then 
+    if not compareTable(mod.sConfigState, mod.config.customsounds.music) then
         imgui.TextColored({1, 0.35, 0, 1}, "MUSIC CHANGES WERE MADE. RESTART REQUIRED AFTER SAVING.")
 
         imgui.NewLine()
@@ -277,7 +277,57 @@ if imgui.TreeNode_Str("Miscellaneous") then
 
     mod.config.misc.customwiplevels = helpers.InputBool("Custom WIP Levels Tab", mod.config.misc.customwiplevels)
     mod.config.misc.nodiscord = helpers.InputBool("Remove Discord Tab", mod.config.misc.nodiscord)
-    
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+    imgui.TreePop()
+end
+
+if imgui.TreeNode_Str("Custom Player") then
+    imgui.SetWindowFontScale(2)
+    imgui.Text("Custom Player")
+    imgui.SetWindowFontScale(1)
+    imgui.Text("A list of levels played in the custom player")
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+    mod.config.customsounds.music.useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
+	helpers.imguiHelpMarker("Randomly shuffles songs from installed maps, no need to pick your favorite")
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+	if lemontweaks and lemontweaks.levellist then
+
+		imgui.Text("Level count: " .. #lemontweaks.levellist)
+
+		imgui.NewLine()
+
+		for i, data in ipairs(lemontweaks.levellist) do
+			local current = lemontweaks.fetchedLevels[lemontweaks.current]
+			if i ~= 1 then imgui.Separator() end
+			if imgui.Selectable_Bool((data.artist or "unknown"):gsub("%b[]", "") .. " - " .. (data.name or "unknown"):gsub("%b[]", ""), data == current) then
+				lemontweaks.current = (data.index or 1) - 1
+				current = lemontweaks.fetchedLevels[lemontweaks.current]
+				-- print("[lemontweaks] Set index to " .. lemontweaks.current .. " " .. (current.artist or "unknown"):gsub("%b[]", "") .. " - " .. (current.name or "unknown"):gsub("%b[]", ""))
+
+				if cs and cs.menuMusicManager and mod.config.customsounds.music.useCustomPlayer then
+					cs.menuMusicManager:stop()
+					cs.menuMusicManager:play()
+				else
+					print("[lemontweaks] no MenuMusicManager")
+				end
+			end
+		end
+	else
+		imgui.Text("No Levels")
+	end
+
     imgui.NewLine()
     imgui.Separator()
     imgui.NewLine()
