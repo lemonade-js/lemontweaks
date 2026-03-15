@@ -266,12 +266,6 @@ if imgui.TreeNode_Str("Custom Sounds") then
     imgui.Separator()
     imgui.NewLine()
 
-    if not compareTable(mod.sConfigState, mod.config.customsounds.music) then
-        imgui.TextColored({1, 0.35, 0, 1}, "MUSIC CHANGES WERE MADE. RESTART REQUIRED AFTER SAVING.")
-
-        imgui.NewLine()
-    end
-
     imgui.TreePop()
 end
 
