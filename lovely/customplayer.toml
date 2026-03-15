@@ -19,29 +19,6 @@ payload = '''
 local mouseJustPressed = love.mouse.isDown(1) and not lemontweaks.mouseWasDown
 lemontweaks.mouseWasDown = love.mouse.isDown(1)
 
-lemontweaks.helperOutlineRect = function(x, y, w, h)
-    color(1)
-    love.graphics.rectangle('fill', x - 1, y - 1, w + 2, h + 2)
-    color(0)
-    love.graphics.rectangle('fill', x, y, w, h)
-end
-
-lemontweaks.helperImgButton = function(sprite, x, y, run)
-    love.graphics.draw(sprite, x, y)
-
-    local w = sprite:getWidth()
-    local h = sprite:getHeight()
-
-    local mx = mouse.rx
-    local my = mouse.ry
-
-    if mouseJustPressed then
-        if mx >= x and mx <= x + w and my >= y and my <= y + h then
-            run()
-        end
-    end
-end
-
 if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
 	if lemontweaks.menuPlaying == nil then
 		lemontweaks.menuPlaying = true
@@ -71,10 +48,12 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
 
     lemontweaks.helperImgButton(sprites.player.shuffle, lemontweaks.menuX + 5 + playerIconPadding * 0, 33, function()
         lemontweaks.fetchedLevels = lemontweaks.shuffle(lemontweaks.fetchedLevels)
+		lemontweaks.current = 1
+		lemontweaks.tempDontAdvance = true
 
         cs.menuMusicManager:stop()
         cs.menuMusicManager:play()
-    end)
+    end, mouseJustPressed)
 
     local pauseIcon;
 
@@ -96,27 +75,28 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
             lemontweaks.menuloopInfo = cs.menuMusicManager:getInfo()
             cs.menuMusicManager:forceMute()
         end
-    end)
+    end, mouseJustPressed)
     lemontweaks.helperImgButton(sprites.player.back, lemontweaks.menuX + 5 + playerIconPadding * 2, 33, function()
         local currentSongInfo = cs.menuMusicManager:getInfo()
 
         if currentSongInfo.playhead - lemontweaks.fetchedLevels[lemontweaks.current].offset < 3 then
-            lemontweaks.current = lemontweaks.current - 2
+            lemontweaks.current = lemontweaks.current - 1
+			lemontweaks.tempDontAdvance = true
         end
 
         cs.menuMusicManager:stop()
         cs.menuMusicManager:play()
-    end)
+    end, mouseJustPressed)
     love.graphics.print(songArtist .. ' - ' .. songName, lemontweaks.menuX + 5 + playerIconPadding * 3, 34)
     lemontweaks.helperImgButton(sprites.player.forward, lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 3, 33, function()
         cs.menuMusicManager:stop()
         cs.menuMusicManager:play()
-    end)
+    end, mouseJustPressed)
     love.graphics.rectangle('fill', lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 4, 26, 1, 30)
     lemontweaks.helperImgButton(sprites.player.menu, lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 16 + playerIconPadding * 4, 33, function()
         lemontweaks.menuOpen = not lemontweaks.menuOpen
         lemontweaks.moveMenu = true
-    end)
+    end, mouseJustPressed)
 
     love.graphics.setFont(fonts.digitalDisco)
 end
