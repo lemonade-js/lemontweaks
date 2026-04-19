@@ -1,7 +1,0 @@
-{"introskip":{"outroskip":false,"introskip":false,"skipthreashold":3,"skipholdlength":1,"midskip":false}
-,"misc":{"escquit":true,"alternateFishing":true,"customwiplevels":true,"confirmquit":true,"nodiscord":true}
-,"chartprog":{"useVFXcolor":true,"reverseDirection":false,"centerBar":false,"showProgressUI":true,"bottomBar":false,"barHeight":6,"showProgressText":true,"progressType":"Percentage","alternate":true,"topBar":true}
-,"customsounds":{"sfx":{"barely":"default","side":"Tick.ogg","block":"Tick.ogg","tap":"Click.ogg","click":"Tick.ogg","miss":"default","hold":"Tick.ogg","hover":"lofi-kick.wav","mine":"default","pause":"default"}
-,"music":{"caution":"default","repeatSameSong":false,"menuloop":"default","menuloopBPM":108,"menuloopOffset":0,"useCustomPlayer":true}
-}
-}
