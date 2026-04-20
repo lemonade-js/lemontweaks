@@ -2,7 +2,7 @@
     "enabled":true,
     "name":"lemontweaks",
     "id":"lemontweaks",
-    "version":"2.10",
+    "version":"2.11",
     "author":"gooberlemonade",
     "description":"Adds many random quality of life features and tweaks",
     "config": {
@@ -29,11 +29,13 @@
             }
         },
         "misc":{
-            "customwiplevels":false,
-            "nodiscord":false,
-            "escquit": false,
-            "confirmquit": false,
-            "alternateFishing": false
+            "gameMechanics":{
+                "alternateFishing": false
+            },
+            "menus":{
+                "customwiplevels":false,
+                "nodiscord":false
+            }
         },
         "chartprog":{
             "useVFXcolor":true,

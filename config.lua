@@ -401,8 +401,21 @@ if imgui.TreeNode_Str("Miscellaneous") then
     imgui.Separator()
     imgui.NewLine()
 
-    mod.config.misc.customwiplevels = helpers.InputBool("Custom WIP Levels Tab", mod.config.misc.customwiplevels)
-    mod.config.misc.nodiscord = helpers.InputBool("Remove Discord Tab", mod.config.misc.nodiscord)
+    if imgui.BeginTabBar("miscconfig") then
+        if imgui.BeginTabItem("Menus##miscconfig") then
+
+            mod.config.misc.menus.customwiplevels = helpers.InputBool("Custom WIP Levels Tab", mod.config.misc.menus.customwiplevels)
+            mod.config.misc.menus.nodiscord = helpers.InputBool("Remove Discord Tab", mod.config.misc.menus.nodiscord)
+
+            imgui.EndTabItem()
+        end
+
+        if imgui.BeginTabItem("Game Mechanics##miscconfig") then
+            imgui.EndTabItem()
+        end
+
+        imgui.EndTabBar()
+    end
 
     imgui.NewLine()
     imgui.Separator()

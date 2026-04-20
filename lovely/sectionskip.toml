@@ -3,12 +3,15 @@ version = "1.0.0"
 dump_lua = true
 priority = 2
 
+
+
 [[patches]]
 [patches.pattern]
-target = "states/Game.lua"
-pattern = '''self.preloadSoundData = soundData'''
-position = "after"
+target = "obj/GameManager.lua"
+pattern = '''table.sort(loadBeatQueue,function(k1, k2)'''
+position = "before"
 payload = '''
+cs.holdingTime = 0
 cs.noteTimings = {}
 
 for _, event in ipairs(cs.level.events) do
@@ -53,16 +56,6 @@ function cs.getBetween(beat, startBeat)
 
     return between
 end
-'''
-match_indent = true
-
-[[patches]]
-[patches.pattern]
-target = "obj/GameManager.lua"
-pattern = '''table.sort(loadBeatQueue,function(k1, k2)'''
-position = "before"
-payload = '''
-cs.holdingTime = 0
 '''
 match_indent = true
 
