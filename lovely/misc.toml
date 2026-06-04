@@ -36,10 +36,6 @@ target = "states/Editor.lua"
 pattern = '''
 if self.beatSnap ~= 0 then
 	local snappedBeat = self:snapBeat(self.editorBeat)
-	if math.abs(self.editorBeat - snappedBeat) <= 0.05 and math.abs(self.editorBeat - snappedBeat) <= math.abs(self.lastEditorBeat - snappedBeat) then
-		self.editorBeat = snappedBeat
-	end
-end
 '''
 position = "after"
 payload = '''
@@ -80,11 +76,25 @@ match_indent = true
 [[patches]]
 [patches.pattern]
 target = "states/Editor.lua"
+pattern = '''self:leave()'''
+position = "before"
+payload = '''
+if mods.lemontweaks.config.misc.editor.musicOnEditorScroll then
+	if self.preloadSoundData and self.preloadSoundData.data then
+		if self.scrollPreviewSource then
+			self.scrollPreviewSource:stop()
+			self.scrollPreviewSource:release()
+			self.scrollPreviewSource = nil
+		end
+	end
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/Editor.lua"
 pattern = '''
-self.level, self.forceSaveBoth = LevelManager:loadLevel(cLevel, v)
-self.gm:resetLevel()
-self.zoom = self.level.properties.speed or 40
-self:updateBiggestBeat()
 self.lastSaved = love.timer.getTime()
 '''
 position = "after"

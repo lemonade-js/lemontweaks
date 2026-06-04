@@ -414,50 +414,81 @@ local function getAllLevels()
 	local chartPaths = {
 		workshop = love.filesystem.getRealDirectory("Workshop/"),
 		customs = love.filesystem.getSaveDirectory() .. "/Custom Levels/",
-		customWIPs = love.filesystem.getSaveDirectory() .. "/Custom WIP Levels/"
+		customWIPs = love.filesystem.getSaveDirectory() .. "/Custom WIP Levels/",
+
+		baseGame = "levels/Finished levels"
 	}
 
 	local wsFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.workshop)
 	local ctFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.customs)
 	local cwipFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.customWIPs)
+	local bgFolders = love.filesystem.getDirectoryItems(chartPaths.baseGame)
+
 	local folders = {}
 
-	for _, folder in ipairs(wsFolders) do
-		table.insert(folders, {
-			path = chartPaths.workshop,
-			name = folder
-		})
+	if #wsFolders > 0 then
+		for _, folder in ipairs(wsFolders) do
+			table.insert(folders, {
+				path = chartPaths.workshop,
+				name = folder
+			})
+		end
 	end
 
-	for _, folder in ipairs(ctFolders) do
-		table.insert(folders, {
-			path = chartPaths.customs,
-			name = folder
-		})
+	if #ctFolders > 0 then
+		for _, folder in ipairs(ctFolders) do
+			table.insert(folders, {
+				path = chartPaths.customs,
+				name = folder
+			})
+		end
 	end
 
-	for _, folder in ipairs(cwipFolders) do
-		table.insert(folders, {
-			path = chartPaths.customWIPs,
-			name = folder
-		})
+	if #cwipFolders > 0 then
+		for _, folder in ipairs(cwipFolders) do
+			table.insert(folders, {
+				path = chartPaths.customWIPs,
+				name = folder
+			})
+		end
 	end
 
-	if #folders == 0 then
-		print("[LT] No levels found!")
-		folders = { { path = love.filesystem.getSaveDirectory() .. "/Mods/lemontweaks/assets/", name = "noLevels" } }
+print("#folders =", #folders)
+print("#bgFolders =", #bgFolders)
+
+	if #folders < 15 then
+		print("less than 15 folders")
+		for _, folder in ipairs(bgFolders) do
+			print("Found file: " .. folder)
+			table.insert(folders, {
+				path = chartPaths.baseGame,
+				name = folder,
+				baseGame = true
+			})
+		end
 	end
 
     for _, folder in ipairs(folders) do
 
         local levelPath = folder.path .. "/" .. folder.name
 
-        if lemontweaks.nativefs.getInfo(levelPath .. "/level.json") then
-            local levelDat = json.decode(lemontweaks.nativefs.read(levelPath .. "/level.json"))
+		local levelJSON = nil
+
+		for _, file in ipairs((folder.baseGame and love.filesystem.getDirectoryItems(levelPath)) or lemontweaks.nativefs.getDirectoryItems(levelPath)) do
+			if file:match("level.*%.json") then
+				levelJSON = file
+				break
+			end
+		end
+
+		print(levelJSON)
+
+        if levelPath and levelJSON and ((folder.baseGame and love.filesystem.getInfo(levelPath .. "/" .. levelJSON)) or lemontweaks.nativefs.getInfo(levelPath .. "/" .. levelJSON)) then
+            local levelDat = (folder.baseGame and json.decode(love.filesystem.read(levelPath .. "/" .. levelJSON))) or json.decode(lemontweaks.nativefs.read(levelPath .. "/" .. levelJSON))
             local manifestDat
 
-            if lemontweaks.nativefs.getInfo(levelPath .. "/manifest.json")  then
-                manifestDat = json.decode(lemontweaks.nativefs.read(levelPath .. "/manifest.json"))
+            if (folder.baseGame and love.filesystem.getInfo(levelPath .. "/manifest.json")) or lemontweaks.nativefs.getInfo(levelPath .. "/manifest.json") then
+                manifestDat = (folder.baseGame and json.decode(love.filesystem.read(levelPath .. "/manifest.json"))) or json.decode(lemontweaks.nativefs.read(levelPath .. "/manifest.json"))
             else
                 -- old level fix
                 manifestDat = levelDat

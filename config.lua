@@ -468,7 +468,7 @@ if imgui.TreeNode_Str("Miscellaneous") then
     if imgui.BeginTabBar("miscconfig") then
         if imgui.BeginTabItem("Editor##miscconfig") then
             mod.config.misc.editor.musicOnEditorScroll = helpers.InputBool("Music On Scroll", mod.config.misc.editor.musicOnEditorScroll)
-            helpers.imguiHelpMarker("Play a small section of the song while scrolling")
+            helpers.imguiHelpMarker("Plays .1 seconds of the song while scrolling in the editor, at the current beat")
 
             imgui.EndTabItem()
         end
