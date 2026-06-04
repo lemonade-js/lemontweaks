@@ -1,0 +1,94 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''cs.noteVolume = 1'''
+position = "after"
+match_indent = true
+payload = '''
+cs.pMisses = 0
+cs.pBarelies = 0
+cs.pCombo = 0
+cs.HSVbounce = 0
+cs.HSVtext = ""
+cs.HSVtimer = 0
+'''
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''function GameManager:drawExpandedHud()'''
+position = "after"
+match_indent = true
+payload = '''
+color(cs.vfx.uiColor)
+
+if mods.lemontweaks.config.hsv.misses then
+    if cs.misses > cs.pMisses then
+        cs.pCombo = cs.combo
+        cs.pMisses = cs.misses
+        cs.HSVtimer = mods.lemontweaks.config.hsv.duration
+        cs.HSVtext = "MISS"
+
+        cs.HSVbounce = 5
+        flux.to(cs, 5, {HSVbounce=0}):ease("linear")
+    end
+end
+
+if mods.lemontweaks.config.hsv.barelies then
+    if cs.barelies > cs.pBarelies then
+        cs.pBarelies = cs.barelies
+        cs.HSVtimer = mods.lemontweaks.config.hsv.duration
+        cs.HSVtext = "BARELY"
+
+        cs.HSVbounce = 5
+        flux.to(cs, 5, {HSVbounce=0}):ease("linear")
+    end
+end
+
+if mods.lemontweaks.config.hsv.hits then
+    if cs.combo > cs.pCombo then
+        cs.pCombo = cs.combo
+        cs.HSVtimer = mods.lemontweaks.config.hsv.duration
+        cs.HSVtext = "PERFECT"
+
+        cs.HSVbounce = 5
+        flux.to(cs, 5, {HSVbounce=0}):ease("linear")
+    end
+end
+
+if cs.HSVtimer > 0 then
+    cs.HSVtimer = cs.HSVtimer - (love.timer.getDelta() * 1000)
+elseif cs.HSVtext ~= "" then
+    cs.HSVtext = ""
+end
+
+local HSVwidth = fonts[mods.lemontweaks.config.hsv.font]:getWidth(cs.HSVtext) * mods.lemontweaks.config.hsv.size
+
+local HSVposition = {
+    ["Above Cranky"] = {
+        x = cs.p.x - (HSVwidth / 2),
+        y = cs.p.y - 60
+    },
+    ["Under Combo"] = {
+        x = project.res.x/2 - 1 + cs.vfx.comboX - (HSVwidth / 2),
+        y = 48 + cs.vfx.comboY
+    },
+    ["Above Cursor"] = {
+        x = mouse.rx - (HSVwidth / 2),
+        y = mouse.ry - 16
+    }
+}
+
+love.graphics.setFont(fonts[mods.lemontweaks.config.hsv.font])
+love.graphics.print(
+    cs.HSVtext, 
+    HSVposition[mods.lemontweaks.config.hsv.position].x, 
+    HSVposition[mods.lemontweaks.config.hsv.position].y - cs.HSVbounce, 
+    0, mods.lemontweaks.config.hsv.size, mods.lemontweaks.config.hsv.size
+)
+'''

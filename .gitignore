@@ -1,4 +1,5 @@
 .nolovelyignore
+.lovelyignore
 config.json
 todo.txt
 
@@ -7,3 +8,7 @@ customsounds/sfx/*
 !customsounds/sfx/side
 customsounds/sfx/side/*
 !customsounds/sfx/side/alternate.ogg
+
+_disabled
+
+icon-old.png

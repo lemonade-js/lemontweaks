@@ -13,6 +13,7 @@ position = "before"
 payload = '''
 cs.holdingTime = 0
 cs.noteTimings = {}
+cs.holdNoteCount = 0
 
 for _, event in ipairs(cs.level.events) do
     local repeats = event.repeats or 0
@@ -21,20 +22,20 @@ for _, event in ipairs(cs.level.events) do
     for i = 0, repeats do
         if event.type == "bounce" then
             for j = 0, event.bounces do
-                table.insert(cs.noteTimings, event.time + (i * repeatDelay) + (j * event.delay))
+                table.insert(cs.noteTimings, {time = event.time + (i * repeatDelay) + (j * event.delay), hold = 0})
             end
         elseif event.type == "block" or event.type == "inverse" or event.type == "mine" or event.type == "side" or event.type == "extraTap" or event.type == "showResults" then
-            table.insert(cs.noteTimings, event.time + (i * repeatDelay))
-        elseif event.type == "hold" or event.type == "mineHold" then
-            table.insert(cs.noteTimings, event.time + (i * repeatDelay))
-            table.insert(cs.noteTimings, event.time + (i * repeatDelay) + event.duration)
+            table.insert(cs.noteTimings, {time = event.time + (i * repeatDelay), hold = 0})
+        elseif event.type == "hold" or (event.type == "mineHold" and not (event.angle % 360 == event.angle2 % 360 and event.duration == 0)) then
+            table.insert(cs.noteTimings, {time = event.time + (i * repeatDelay), hold = 1})
+            table.insert(cs.noteTimings, {time = event.time + (i * repeatDelay) + event.duration, hold = -1})
         end
     end
 end
 
-table.sort(cs.noteTimings)
+table.sort(cs.noteTimings, function(a, b) return a.time < b.time end)
 
-function cs.getBetween(beat, startBeat)
+function cs.getBetween(beat)
     --print(#cs.noteTimings)
     if not cs.noteTimings then return {} end
 
@@ -42,16 +43,16 @@ function cs.getBetween(beat, startBeat)
 
     -- probably unoptimized with a ton of notes
     for i, t in ipairs(cs.noteTimings) do
-        if t <= beat then
+        if t.time <= beat then
+            if not t.acknowledged then
+                cs.holdNoteCount = cs.holdNoteCount + t.hold
+                t.acknowledged = true
+            end
             between[1] = t
-        elseif t > beat and not between[2] then
+        elseif t.time > beat and not between[2] then
             between[2] = t
             break
         end
-    end
-
-    if between[1] == nil then
-        between[0] = startBeat
     end
 
     return between
@@ -68,7 +69,7 @@ payload = '''
 if mods.lemontweaks.config.sectionskip.enabled then
     color(cs.vfx.uiColor)
 
-    local between = cs.getBetween(cs.cBeat, cs.startBeat)
+    local between = cs.getBetween(cs.cBeat)
 
     local points = cs.timingInfo and cs.timingInfo.timingPoints or {}
     local currentBpm = cs.timingInfo and cs.timingInfo.initial and cs.timingInfo.initial.bpm or cs.level.bpm or 100
@@ -83,14 +84,15 @@ if mods.lemontweaks.config.sectionskip.enabled then
 
     local function sectionSkippable()
         -- some levels are vfx only
-        if not cs.noteTimings then return false end
+        if not #cs.noteTimings then return false end
         if not between[2] then return false end
-        between[1] = between[1] or 0
+        between[1] = between[1] or {time = 0, hold = 0}
+        if cs.holdNoteCount > 0 then return false end
 
         local sth = currentBpm * (mods.lemontweaks.config.sectionskip.skipthreashold / 60000)
         local sjd = currentBpm * (mods.lemontweaks.config.sectionskip.skipjumpdist / 60000)
 
-        if cs.cBeat > between[1] and cs.cBeat < between[2] - sjd and (between[2] - between[1] - sjd > sth) then
+        if cs.cBeat > between[1].time and cs.cBeat < between[2].time - sjd and (between[2].time - between[1].time - sjd > sth) then
             return true
         end
         return false
@@ -113,7 +115,7 @@ if mods.lemontweaks.config.sectionskip.enabled then
 
         if cs.holdingTime / mods.lemontweaks.config.sectionskip.skipholdlength >= 1 then
             cs.holdingTime = 0
-            local skipTo = between[2] - (currentBpm * (mods.lemontweaks.config.sectionskip.skipjumpdist / 60000))
+            local skipTo = between[2].time - (currentBpm * (mods.lemontweaks.config.sectionskip.skipjumpdist / 60000))
             cs.cBeat = skipTo
             if cs.source then
                 cs.source:setBeat(skipTo)

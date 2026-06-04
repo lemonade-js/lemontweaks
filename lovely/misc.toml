@@ -5,6 +5,243 @@ priority = 1
 
 
 
+##########
+# Editor #
+##########
+
+# music on scroll
+
+[[patches]]
+[patches.pattern]
+target = "states/Editor.lua"
+pattern = '''if self.pendingSoundData then'''
+position = "before"
+payload = '''
+if mods.lemontweaks.config.misc.editor.musicOnEditorScroll then
+	if self.scrollPreviewStopAt and love.timer.getTime() >= self.scrollPreviewStopAt then
+		if self.scrollPreviewSource then
+			self.scrollPreviewSource:stop()
+			self.scrollPreviewSource:release()
+			self.scrollPreviewSource = nil
+		end
+		self.scrollPreviewStopAt = nil
+	end
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/Editor.lua"
+pattern = '''
+if self.beatSnap ~= 0 then
+	local snappedBeat = self:snapBeat(self.editorBeat)
+	if math.abs(self.editorBeat - snappedBeat) <= 0.05 and math.abs(self.editorBeat - snappedBeat) <= math.abs(self.lastEditorBeat - snappedBeat) then
+		self.editorBeat = snappedBeat
+	end
+end
+'''
+position = "after"
+payload = '''
+if mods.lemontweaks.config.misc.editor.musicOnEditorScroll then
+	if self.preloadSoundData and self.preloadSoundData.data then
+		if self.scrollPreviewSource then
+			self.scrollPreviewSource:stop()
+			self.scrollPreviewSource:release()
+			self.scrollPreviewSource = nil
+		end
+
+		local bpm = 120
+		local offset = 0
+		local playEventBeat = 0
+		for _, v in ipairs(self.level.events) do
+			if (v.type == "play" or v.type == "setTempo") and v.time <= self.editorBeat then
+				bpm = v.bpm
+				if v.type == "play" then playEventBeat = v.time end
+				if v.offset then offset = v.offset end
+			end
+		end
+
+		local timeInSeconds = (self.editorBeat - playEventBeat) * (60 / bpm) + offset
+
+		if timeInSeconds >= 0 and timeInSeconds < self.preloadSoundData.data:getDuration() then
+			self.scrollPreviewSource = love.audio.newSource(self.preloadSoundData.data)
+			self.scrollPreviewSource:seek(timeInSeconds)
+			self.scrollPreviewSource:setVolume(savedata.options.audio.musicvolume / 10)
+			self.scrollPreviewSource:setPitch(cs.rateMod)
+			self.scrollPreviewSource:play()
+			self.scrollPreviewStopAt = love.timer.getTime() + 0.05
+		end
+	end
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/Editor.lua"
+pattern = '''
+self.level, self.forceSaveBoth = LevelManager:loadLevel(cLevel, v)
+self.gm:resetLevel()
+self.zoom = self.level.properties.speed or 40
+self:updateBiggestBeat()
+self.lastSaved = love.timer.getTime()
+'''
+position = "after"
+payload = '''
+if mods.lemontweaks.config.misc.editor.musicOnEditorScroll then
+	local _songFile, _songVolume = nil, 1
+	for _, _v in ipairs(self.level.events) do
+		if _v.type == 'play' then
+			_songFile = _v.file
+			_songVolume = _v.volume or 1
+			break
+		end
+	end
+	if _songFile then
+		if self.loadThread then self.loadThread:release() end
+		self.preloadSoundData = nil
+		self.pendingSoundData = true
+		self.loadThread = love.thread.newThread("threads/audioPreload.lua")
+		self.loadThread:start(cLevel, _songFile, _songVolume, 'soundPreload')
+	end
+end
+'''
+match_indent = true
+
+
+
+##################
+# Game Mechanics #
+##################
+
+# event exit
+
+[[patches]]
+[patches.pattern]
+target = "states/Game.lua"
+pattern = '''if 	not self.allowPause or			--for special cases like damoclism, where pausing would break things, prevent pausing
+		EventModeManager.inEventMode	--event mode is an arcade setup, so prevent pausing mid-chart entirely
+		then'''
+position = "at"
+payload = '''
+if 	not self.allowPause			--for special cases like damoclism, where pausing would break things, prevent pausing
+		then 
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''EventModeManager.currentTimer = EventModeManager.eventTimers.songSelect * 60'''
+position = "before"
+payload = '''
+hasQuitEvent = hasQuitEvent or false
+
+print("hasQuitEvent:", hasQuitEvent)
+if hasQuitEvent then
+	hasQuitEvent = false
+	self:quitToMenu()
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/Game.lua"
+pattern = '''elseif not self.marathonData then'''
+position = "before"
+payload = '''
+elseif EventModeManager.inEventMode and mods.lemontweaks.config.misc.gameMechanics.eventQuit then
+	self.pauseMenu.menu:addOption('quitEvent',function()
+		hasQuitEvent = true
+		self:quitLevel()
+	end, 40)
+'''
+match_indent = true
+
+# static ui
+
+[[patches]]
+[patches.pattern]
+target = "levelformat/events/Vfx/ease.lua"
+pattern = '''local varSplit = {}'''
+position = "after"
+payload = '''
+local UIMovementEases = {
+    ["vfx.comboX"] = true,
+    ["vfx.comboY"] = true,
+    ["vfx.accuracyX"] = true,
+    ["vfx.accuracyY"] = true,
+    ["vfx.songNameX"] = true,
+    ["vfx.songNameY"] = true,
+    ["vfx.difficultyX"] = true,
+    ["vfx.difficultyY"] = true,
+}
+
+local UIGlitchEases = {
+    ["vfx.glitchUIElements"] = true,
+    ["vfx.comboCensorChance"] = true,
+    ["vfx.accuracyCensorChance"] = true,
+    ["vfx.songNameCensorChance"] = true,
+    ["vfx.difficultyCensorChance"] = true
+}
+
+if mods.lemontweaks.config.misc.gameMechanics.staticUI and UIMovementEases[event.var] then
+	print("[LT] staticUI enabled, skipped " .. event.var)
+    return
+end
+
+if mods.lemontweaks.config.misc.gameMechanics.noGlitchUI and UIGlitchEases[event.var] then
+	print("[LT] noGlitchUI enabled, skipped " .. event.var)
+    return
+end
+'''
+match_indent = true
+
+# force + noGlitch ui
+
+[[patches]]
+[patches.pattern]
+target = "levelformat/events/Vfx/setBoolean.lua"
+pattern = '''local varSplit = {}'''
+position = "after"
+payload = '''
+local UIDrawBools = {
+    ["vfx.drawCombo"] = true,
+    ["vfx.drawAccuracy"] = true,
+    ["vfx.drawSongTitle"] = true,
+    ["vfx.drawDifficulty"] = true,
+    ["vfx.drawUI"] = true,
+    ["vfx.onTopUI"] = true
+}
+
+local UIGlitchBools = {
+    ["vfx.glitchCombo"] = true,
+    ["vfx.glitchAccuracy"] = true,
+    ["vfx.glitchSongName"] = true,
+    ["vfx.glitchDifficulty"] = true,
+	["vfx.songNameNoLineWrap"] = true
+}
+
+if mods.lemontweaks.config.misc.gameMechanics.forceUI and UIDrawBools[event.var] then
+	print("[LT] forceUI enabled, skipped " .. event.var)
+    return
+end
+
+if mods.lemontweaks.config.misc.gameMechanics.noGlitchUI and UIGlitchBools[event.var] then
+	print("[LT] noGlitchUI enabled, skipped " .. event.var)
+    return
+end
+'''
+match_indent = true
+
+
+
+#########
+# Menus #
+#########
+
 # custom wip levels
 
 [[patches]]
@@ -37,9 +274,8 @@ end
 '''
 match_indent = true
 
-
-
 # no discord
+
 [[patches]]
 [patches.pattern]
 target = "states/Menu.lua"
@@ -56,4 +292,24 @@ if not mods.lemontweaks.config.misc.menus.nodiscord then
     end, 17*7, nil, sprites.menu.discord)
 end
 '''
+match_indent = true
+
+# force off steam chart editing
+
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = '''if project.release then'''
+position = "at"
+payload = '''if project.release or mods.lemontweaks.config.misc.menus.forceOffSteamEdit then'''
+match_indent = true
+
+# better menu clicks
+
+[[patches]]
+[patches.pattern]
+target = "obj/OptionsList.lua"
+pattern = '''end'''
+position = "at"
+payload = '''end'''
 match_indent = true

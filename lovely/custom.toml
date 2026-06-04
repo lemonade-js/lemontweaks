@@ -410,19 +410,47 @@ lemontweaks.helperImgButton = function(sprite, x, y, run, mouseJustPressed)
 end
 local function getAllLevels()
     local levels = {}
-    local workshopPath = love.filesystem.getRealDirectory("Workshop/");
+	
+	local chartPaths = {
+		workshop = love.filesystem.getRealDirectory("Workshop/"),
+		customs = love.filesystem.getSaveDirectory() .. "/Custom Levels/",
+		customWIPs = love.filesystem.getSaveDirectory() .. "/Custom WIP Levels/"
+	}
 
-	if lemontweaks.didINIT then
-		print("mod has init")
-	else
-		print("mod has not init")
+	local wsFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.workshop)
+	local ctFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.customs)
+	local cwipFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.customWIPs)
+	local folders = {}
+
+	for _, folder in ipairs(wsFolders) do
+		table.insert(folders, {
+			path = chartPaths.workshop,
+			name = folder
+		})
 	end
 
-    local folders = lemontweaks.nativefs.getDirectoryItems(workshopPath)
+	for _, folder in ipairs(ctFolders) do
+		table.insert(folders, {
+			path = chartPaths.customs,
+			name = folder
+		})
+	end
+
+	for _, folder in ipairs(cwipFolders) do
+		table.insert(folders, {
+			path = chartPaths.customWIPs,
+			name = folder
+		})
+	end
+
+	if #folders == 0 then
+		print("[LT] No levels found!")
+		folders = { { path = love.filesystem.getSaveDirectory() .. "/Mods/lemontweaks/assets/", name = "noLevels" } }
+	end
 
     for _, folder in ipairs(folders) do
 
-        local levelPath = workshopPath .. "/" .. folder
+        local levelPath = folder.path .. "/" .. folder.name
 
         if lemontweaks.nativefs.getInfo(levelPath .. "/level.json") then
             local levelDat = json.decode(lemontweaks.nativefs.read(levelPath .. "/level.json"))
@@ -445,13 +473,13 @@ local function getAllLevels()
             end
 
 			if playEvent == nil then
-				print("no play event found, skipped.")
+				print("[LT] no play event found, skipped.")
 			else
 				table.insert(levels, {
 					name = manifestDat.metadata.songName,
 					artist = manifestDat.metadata.artist,
 					bpm = playEvent.bpm,
-					file = workshopPath .. "/" .. folder .. "/" .. playEvent.file,
+					file = folder.path .. "/" .. folder.name .. "/" .. playEvent.file,
 					offset = playEvent.offset or 0
 				})
 			end

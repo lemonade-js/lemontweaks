@@ -15,7 +15,16 @@ cs.fsrBeat = nil
 cs.time = 0
 cs.zeroBeatTime = nil
 cs.songLength = nil
-cs.progessBarStartOffset = -cs.startBeat
+cs.progessBarStartOffset = nil
+
+if cs.progessBarStartOffset == nil and cs.level.properties.startingBeat then
+	cs.progessBarStartOffset = cs.level.properties.startingBeat
+else
+	cs.progessBarStartOffset = cs.progessBarStartOffset or project.startBeat or 0
+	--cs.cBeat = 0-cs.offset +cs.startBeat
+end
+
+--cs.progessBarStartOffset = -cs.level.properties.startingBeat
 
 for _, event in ipairs(cs.playEvents) do
     if event.type == "showResults" then

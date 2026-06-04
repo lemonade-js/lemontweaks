@@ -148,6 +148,7 @@ if imgui.TreeNode_Str("Chart Progress") then
         imgui.BeginDisabled()
     end
 
+    imgui.SetNextItemWidth(120)
 	if imgui.BeginCombo("Progress Type", mod.config.chartprog.progressType) then
         for i, v in ipairs(types) do
             local isSelected = (v == mod.config.chartprog.progressType)
@@ -354,6 +355,69 @@ if imgui.TreeNode_Str("Custom Sounds") then
     imgui.TreePop()
 end
 
+if imgui.TreeNode_Str("Hit Score Visualizer") then
+    imgui.SetWindowFontScale(2)
+    imgui.Text("Hit Score Visualizer")
+    imgui.SetWindowFontScale(1)
+    imgui.Text("Shows visuals when you hit, get a barely, or miss a note in the expanded HUD")
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+    mod.config.hsv.misses = helpers.InputBool("Show Misses", mod.config.hsv.misses)
+    mod.config.hsv.barelies = helpers.InputBool("Show Barelies", mod.config.hsv.barelies)
+    mod.config.hsv.hits = helpers.InputBool("Show Hits", mod.config.hsv.hits)
+
+    imgui.NewLine()
+
+    local fontTypes = { "digitalDisco", "digitalDiscoBold", "main", "jfdot", "jfdot2", "ancient", "terminal", "terminalTall", "terminalTallFixedWidth", "terabyte", "small", "rsUI", "undocrash" }
+
+    imgui.SetNextItemWidth(120)
+	if imgui.BeginCombo("Font", mod.config.hsv.font) then
+        for i, v in ipairs(fontTypes) do
+            local isSelected = (v == mod.config.hsv.font)
+            if imgui.Selectable_Bool(v, isSelected) then
+                mod.config.hsv.font = v
+            end
+        end
+        imgui.EndCombo()
+    end
+
+    helpers.imguiHelpMarker("The font the visualizer uses")
+
+    local positionTypes = { "Above Cranky", "Under Combo", "Above Cursor" }
+
+    imgui.SetNextItemWidth(120)
+	if imgui.BeginCombo("Position", mod.config.hsv.position) then
+        for i, v in ipairs(positionTypes) do
+            local isSelected = (v == mod.config.hsv.position)
+            if imgui.Selectable_Bool(v, isSelected) then
+                mod.config.hsv.position = v
+            end
+        end
+        imgui.EndCombo()
+    end
+
+    helpers.imguiHelpMarker("Where the visualizer is displayed")
+
+    imgui.NewLine()
+
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.size = helpers.InputFloat("Size", mod.config.hsv.size)
+    helpers.imguiHelpMarker("The size of the visualizer text")
+
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.duration = helpers.InputInt("Text Duration (ms)", mod.config.hsv.duration)
+    helpers.imguiHelpMarker("How long the text shows before disappearing in milliseconds")
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+    imgui.TreePop()
+end
+
 if imgui.TreeNode_Str("Section Skip") then
     imgui.SetWindowFontScale(2)
     imgui.Text("Section Skip")
@@ -402,15 +466,39 @@ if imgui.TreeNode_Str("Miscellaneous") then
     imgui.NewLine()
 
     if imgui.BeginTabBar("miscconfig") then
-        if imgui.BeginTabItem("Menus##miscconfig") then
-
-            mod.config.misc.menus.customwiplevels = helpers.InputBool("Custom WIP Levels Tab", mod.config.misc.menus.customwiplevels)
-            mod.config.misc.menus.nodiscord = helpers.InputBool("Remove Discord Tab", mod.config.misc.menus.nodiscord)
+        if imgui.BeginTabItem("Editor##miscconfig") then
+            mod.config.misc.editor.musicOnEditorScroll = helpers.InputBool("Music On Scroll", mod.config.misc.editor.musicOnEditorScroll)
+            helpers.imguiHelpMarker("Play a small section of the song while scrolling")
 
             imgui.EndTabItem()
         end
 
         if imgui.BeginTabItem("Game Mechanics##miscconfig") then
+            mod.config.misc.gameMechanics.eventExit = helpers.InputBool("Event Exit", mod.config.misc.gameMechanics.eventExit)
+            helpers.imguiHelpMarker("Want to stop playing in event mode? Press ESC to exit!")
+
+
+            mod.config.misc.gameMechanics.forceUI = helpers.InputBool("Force UI", mod.config.misc.gameMechanics.forceUI)
+            helpers.imguiHelpMarker("Always force UI in a level to show")
+
+            mod.config.misc.gameMechanics.staticUI = helpers.InputBool("Static UI", mod.config.misc.gameMechanics.staticUI)
+            helpers.imguiHelpMarker("Keep UI elements in game fixed in one place")
+
+            mod.config.misc.gameMechanics.noGlitchUI = helpers.InputBool("Don't glitch UI", mod.config.misc.gameMechanics.noGlitchUI)
+            helpers.imguiHelpMarker("UI ignores glitch and sensor effects")
+
+            imgui.EndTabItem()
+        end
+
+        if imgui.BeginTabItem("Menus##miscconfig") then
+
+            mod.config.misc.menus.customwiplevels = helpers.InputBool("Custom WIP Levels Tab", mod.config.misc.menus.customwiplevels)
+            
+            mod.config.misc.menus.nodiscord = helpers.InputBool("Remove Discord Tab", mod.config.misc.menus.nodiscord)
+
+            mod.config.misc.menus.forceOffSteamEdit = helpers.InputBool("Force Off Steam Editing", mod.config.misc.menus.forceOffSteamEdit)
+            helpers.imguiHelpMarker("Removes the \"Edit\" option under Steam Workshop charts (does nothing without notnotrelease)")
+
             imgui.EndTabItem()
         end
 

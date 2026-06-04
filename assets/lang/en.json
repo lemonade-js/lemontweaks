@@ -1,4 +1,5 @@
 {
     "wipcustoms": "Custom WIP Levels",
-    "customs": "Custom Levels"
+    "customs": "Custom Levels",
+    "quitEvent": "Quit Event"
 }

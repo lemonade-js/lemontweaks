@@ -1,11 +1,11 @@
 {
     "enabled":true,
-    "name":"lemontweaks",
+    "name":"Lemon Tweaks",
     "id":"lemontweaks",
-    "version":"2.11",
+    "version":"3.0",
     "author":"gooberlemonade",
-    "description":"Adds many random quality of life features and tweaks",
-    "config": {
+    "description":"Adds many random quality of life features and tweaks :cat2:",
+    "config":{
         "customsounds":{
             "music":{
                 "useCustomPlayer":true,
@@ -29,19 +29,26 @@
             }
         },
         "misc":{
+            "editor":{
+                "musicOnEditorScroll":false
+            },
             "gameMechanics":{
-                "alternateFishing": false
+                "eventExit":false,
+                "forceUI":false,
+                "staticUI":false,
+                "noGlitchUI":false
             },
             "menus":{
                 "customwiplevels":false,
-                "nodiscord":false
+                "nodiscord":false,
+                "forceOffSteamEdit":false
             }
         },
         "chartprog":{
             "useVFXcolor":true,
             "alternate":false,
-            "showProgressText": false,
-            "progressType": "Percentage",
+            "showProgressText":false,
+            "progressType":"Percentage",
             "reverseDirection":false,
             "centerBar":false,
             "topBar":false,
@@ -50,9 +57,18 @@
         },
         "sectionskip":{
             "enabled":false,
-            "skipthreashold":5000,
-            "skipholdlength":1000,
+            "skipthreashold":3000,
+            "skipholdlength":500,
             "skipjumpdist":2000
+        },
+        "hsv": {
+            "misses":false,
+            "barelies":false,
+            "hits":false,
+            "font":"main",
+            "size":1,
+            "position":"Above Cranky",
+            "duration": 250
         }
     }
 }
