@@ -2,7 +2,7 @@
     "enabled":true,
     "name":"Lemon Tweaks",
     "id":"lemontweaks",
-    "version":"3.1",
+    "version":"3.2",
     "author":"gooberlemonade",
     "description":"Adds many random quality of life features and tweaks :cat2:",
     "config":{

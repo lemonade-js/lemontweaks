@@ -26,13 +26,17 @@ local LT_CS_required = {
     "customsounds/sfx/tap",
     "customsounds/music",
     "customsounds/music/caution",
-    "customsounds/music/menu"
+    "customsounds/music/menuloop"
 }
 
 for _, path in ipairs(LT_CS_required) do
     if not love.filesystem.getInfo("Mods/lemontweaks/" .. path, "directory") then
         love.filesystem.createDirectory("Mods/lemontweaks/" .. path)
     end
+end
+
+if love.filesystem.getInfo("Mods/lemontweaks/customsounds/music/menu", "directory") then
+    love.filesystem.remove("Mods/lemontweaks/customsounds/music/menu")
 end
 '''
 match_indent = true
