@@ -353,7 +353,6 @@ pattern = '''
 function MenuMusicManager:play()
 	if savedata.options.audio.playMenuMusic then
 		self.music
-			:load('assets/music/menuloop.ogg')
 			:setBPM(108)
 			:setLooping(true)
 			:play()
@@ -419,14 +418,14 @@ local function getAllLevels()
 		baseGame = "levels/Finished levels"
 	}
 
-	local wsFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.workshop)
+	local wsFolders = chartPaths.workshop and lemontweaks.nativefs.getDirectoryItems(chartPaths.workshop)
 	local ctFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.customs)
 	local cwipFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.customWIPs)
 	local bgFolders = love.filesystem.getDirectoryItems(chartPaths.baseGame)
 
 	local folders = {}
 
-	if #wsFolders > 0 then
+	if wsFolders and #wsFolders > 0 then
 		for _, folder in ipairs(wsFolders) do
 			table.insert(folders, {
 				path = chartPaths.workshop,
