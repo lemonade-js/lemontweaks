@@ -11,9 +11,7 @@ priority = 1
 [patches.pattern]
 match_indent = true
 pattern = '''
-color('black')
-love.graphics.print(version, project.res.cx * 2 - fonts.digitalDisco:getWidth(version) - 10 ,6 + self.logoY )
-color()
+love.graphics.print(loc.get('twitterPlug'),project.res.cx * -1 + 10 + self.x * project.res.cx,6+self.logoY )
 '''
 payload = '''
 local mouseJustPressed = love.mouse.isDown(1) and not lemontweaks.mouseWasDown

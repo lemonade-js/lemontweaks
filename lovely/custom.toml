@@ -1,7 +1,7 @@
 [manifest]
 version = "1.0.0"
 dump_lua = true
-priority = 0
+priority = -1
 
 
 
@@ -320,7 +320,7 @@ if self.music and self.music.source and mods.lemontweaks.config.customsounds.mus
 	local duration = self.music.source:getDuration()
 
 	if time + 0.5 >= duration then
-		print("song ended")
+		-- print("song ended")
 		self:stop()
 		self:play()
 	end
@@ -409,7 +409,7 @@ lemontweaks.helperImgButton = function(sprite, x, y, run, mouseJustPressed)
 end
 local function getAllLevels()
     local levels = {}
-	
+
 	local chartPaths = {
 		workshop = love.filesystem.getRealDirectory("Workshop/"),
 		customs = love.filesystem.getSaveDirectory() .. "/Custom Levels/",
@@ -458,7 +458,7 @@ print("#bgFolders =", #bgFolders)
 	if #folders < 15 then
 		print("less than 15 folders")
 		for _, folder in ipairs(bgFolders) do
-			print("Found file: " .. folder)
+			-- print("Found file: " .. folder)
 			table.insert(folders, {
 				path = chartPaths.baseGame,
 				name = folder,
@@ -480,7 +480,7 @@ print("#bgFolders =", #bgFolders)
 			end
 		end
 
-		print(levelJSON)
+		-- print(levelJSON)
 
         if levelPath and levelJSON and ((folder.baseGame and love.filesystem.getInfo(levelPath .. "/" .. levelJSON)) or lemontweaks.nativefs.getInfo(levelPath .. "/" .. levelJSON)) then
             local levelDat = (folder.baseGame and json.decode(love.filesystem.read(levelPath .. "/" .. levelJSON))) or json.decode(lemontweaks.nativefs.read(levelPath .. "/" .. levelJSON))
