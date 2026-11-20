@@ -1,19 +1,19 @@
 {
-    "name": "Lemon Tweaks",
-    "id": "lemontweaks",
-    "version": "4.0",
-    "author": "gooberlemonade",
-    "description": "Adds many random quality of life features and tweaks :cat2:",
-    "config": {
-        "customsounds": {
-            "music": {
-                "useCustomPlayer": true,
-                "repeatSameSong": false,
-                "caution": "default",
-                "menuloopBPM": 108,
-                "menuloopOffset": 0,
-                "menuloop": "default",
-                "halfTime": true
+    "enabled":true,
+    "name":"Lemon Tweaks",
+    "id":"lemontweaks",
+    "version":"3.2",
+    "author":"gooberlemonade",
+    "description":"Adds many random quality of life features and tweaks :cat2:",
+    "config":{
+        "customsounds":{
+            "music":{
+                "useCustomPlayer":true,
+                "repeatSameSong":false,
+                "caution":"default",
+                "menuloopBPM":108,
+                "menuloopOffset":0,
+                "menuloop":"default"
             },
             "sfx": {
                 "mine": "default",
