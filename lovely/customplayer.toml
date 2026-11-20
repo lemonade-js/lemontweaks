@@ -16,9 +16,7 @@ love.graphics.print(version, project.res.cx * 2 - fonts.digitalDisco:getWidth(ve
 color()
 '''
 payload = '''
-local mouseJustPressed = love.mouse.isDown(1) and not lemontweaks.mouseWasDown
-lemontweaks.mouseWasDown = love.mouse.isDown(1)
-
+-- lemon: i write shit code that sometimes works :fire:
 if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
 	if lemontweaks.menuPlaying == nil then
 		lemontweaks.menuPlaying = true
@@ -26,10 +24,9 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
 
     local playerIconPadding = 5 + 16;
 
-    local songArtist = lemontweaks.fetchedLevels[lemontweaks.current].artist:gsub("%b[]", "") or "unknown"
-    local songName = lemontweaks.fetchedLevels[lemontweaks.current].name:gsub("%b[]", "") or "unknown"
+    local _, _, textWidth, _ = rtf:getBoundingRect(lemontweaks.songArtist .. ' - ' .. lemontweaks.songName, 0, 34, fonts.digitalDisco, 1, 1, 99999, "center");
 
-	lemontweaks.menuX = lemontweaks.menuX or (lemontweaks.menuOpen and -(fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 11 + playerIconPadding * 4) or 0)
+	lemontweaks.menuX = lemontweaks.menuX or (not lemontweaks.menuOpen and -(textWidth + 11 + playerIconPadding * 4) or 0)
 
     if lemontweaks.moveMenu then
         lemontweaks.moveMenu = false
@@ -37,23 +34,78 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
         if lemontweaks.menuOpen then
             flux.to(lemontweaks, 25, { menuX = 0 }):ease("outCubic")
         else
-            flux.to(lemontweaks, 25, { menuX = -(fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 11 + playerIconPadding * 4) }):ease("outCubic")
+            flux.to(lemontweaks, 25, { menuX = -(textWidth + 11 + playerIconPadding * 4) }):ease("outCubic")
         end
     end
 
-    lemontweaks.helperOutlineRect(lemontweaks.menuX + 0, 26, fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 16 + playerIconPadding * 5, 30)
+    -- this code is a mess
+    -- surely it will be easy to debug once 2.0 drops and breaks everything lmao
+
+    jsrshf.outlineRect(lemontweaks.menuX, 26, textWidth + 16 + playerIconPadding * 5, 30)
+    if not lemontweaks.vanillaSongsOnly then
+        jsrshf.imgButton(sprites.player.tolevel, lemontweaks.menuX, 56, function()
+            lemontweaks.jumpTo = true
+
+            if lemontweaks.fetchedLevels[lemontweaks.current].type == 'workshop' then
+                if project.mountedWorkshop then
+                    cs.bg.delete = true
+                    cs = bs.load('SongSelect')
+                    self.menuMusicManager:clearOnBeatHooks()
+                    
+                    self:leave()
+                    cs.menuMusicManager = self.menuMusicManager
+                    cs.topDirectory = 'Workshop/'
+                    if project.release or mods.lemontweaks.config.misc.menus.forceOffSteamEdit then
+                        cs.allowEditor = false
+                    end
+                    cs:init()
+                else
+                    PopupManager.queuePopup('menuWorkshopTitle', 'menuWorkshop', 60, {{label='popupGoBack'},{label='popupViewWorkshop',func = function()
+                        steam.Friends.ActivateGameOverlayToWebPage('https://steamcommunity.com/app/3045200/workshop/', 0)
+                    end}})
+                end
+            elseif lemontweaks.fetchedLevels[lemontweaks.current].type == 'custom' then
+                if not love.filesystem.getInfo('Custom Levels','directory') then
+                    love.filesystem.createDirectory('Custom Levels')
+                end
+                cs.bg.delete = true
+                cs = bs.load('SongSelect')
+                self.menuMusicManager:clearOnBeatHooks()
+                
+                self:leave()
+                cs.menuMusicManager = self.menuMusicManager
+                cs.topDirectory = 'Custom Levels/'
+                cs.allowEditor = true
+                cs:init()
+            elseif lemontweaks.fetchedLevels[lemontweaks.current].type == 'wip' then
+                if not love.filesystem.getInfo('Custom WIP Levels','directory') then
+                    love.filesystem.createDirectory('Custom WIP Levels')
+                end
+        
+                cs.bg.delete = true
+                cs = bs.load('SongSelect')
+                self.menuMusicManager:clearOnBeatHooks()
+        
+                self:leave()
+                cs.menuMusicManager = self.menuMusicManager
+                cs.topDirectory = 'Custom WIP Levels/'
+                cs.allowEditor = true
+                cs:init()
+            end
+        end)
+    end
 
     color(1)
-    love.graphics.setFont(fonts.digitalDiscoBold)
+    love.graphics.setFont(fonts.digitalDisco)
 
-    lemontweaks.helperImgButton(sprites.player.shuffle, lemontweaks.menuX + 5 + playerIconPadding * 0, 33, function()
+    jsrshf.imgButton(sprites.player.shuffle, lemontweaks.menuX + 5 + playerIconPadding * 0, 33, function()
         lemontweaks.fetchedLevels = lemontweaks.shuffle(lemontweaks.fetchedLevels)
 		lemontweaks.current = 1
 		lemontweaks.tempDontAdvance = true
 
         cs.menuMusicManager:stop()
         cs.menuMusicManager:play()
-    end, mouseJustPressed)
+    end)
 
     local pauseIcon;
 
@@ -65,7 +117,7 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
         cs.menuMusicManager:seek(lemontweaks.menuloopInfo.playhead)
     end
 
-    lemontweaks.helperImgButton(pauseIcon, lemontweaks.menuX + 5 + playerIconPadding * 1, 33, function()
+    jsrshf.imgButton(pauseIcon, lemontweaks.menuX + 5 + playerIconPadding * 1, 33, function()
         lemontweaks.menuPlaying = not lemontweaks.menuPlaying
 
         if lemontweaks.menuPlaying then
@@ -75,31 +127,102 @@ if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
             lemontweaks.menuloopInfo = cs.menuMusicManager:getInfo()
             cs.menuMusicManager:forceMute()
         end
-    end, mouseJustPressed)
-    lemontweaks.helperImgButton(sprites.player.back, lemontweaks.menuX + 5 + playerIconPadding * 2, 33, function()
+    end)
+    jsrshf.imgButton(sprites.player.back, lemontweaks.menuX + 5 + playerIconPadding * 2, 33, function()
         local currentSongInfo = cs.menuMusicManager:getInfo()
 
         if currentSongInfo.playhead - lemontweaks.fetchedLevels[lemontweaks.current].offset < 3 then
             lemontweaks.current = lemontweaks.current - 1
-			lemontweaks.tempDontAdvance = true
         end
+
+        lemontweaks.tempDontAdvance = true
 
         cs.menuMusicManager:stop()
         cs.menuMusicManager:play()
-    end, mouseJustPressed)
-    love.graphics.print(songArtist .. ' - ' .. songName, lemontweaks.menuX + 5 + playerIconPadding * 3, 34)
-    lemontweaks.helperImgButton(sprites.player.forward, lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 3, 33, function()
+    end)
+    -- decided to scrap the rtf idea
+    rtf:drawRich(lemontweaks.songArtist .. ' - ' .. lemontweaks.songName, lemontweaks.menuX + 5 + playerIconPadding * 3, 34)
+    jsrshf.imgButton(sprites.player.forward, lemontweaks.menuX + textWidth + 10 + playerIconPadding * 3, 33, function()
+        lemontweaks.current = lemontweaks.current + 1
+        lemontweaks.tempDontAdvance = true
+
         cs.menuMusicManager:stop()
         cs.menuMusicManager:play()
-    end, mouseJustPressed)
-    love.graphics.rectangle('fill', lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 4, 26, 1, 30)
-    lemontweaks.helperImgButton(sprites.player.menu, lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 16 + playerIconPadding * 4, 33, function()
+    end)
+    love.graphics.rectangle('fill', lemontweaks.menuX + textWidth + 10 + playerIconPadding * 4, 26, 1, 30)
+    jsrshf.imgButton(sprites.player.menu, lemontweaks.menuX + textWidth + 16 + playerIconPadding * 4, 33, function()
         lemontweaks.menuOpen = not lemontweaks.menuOpen
         lemontweaks.moveMenu = true
-    end, mouseJustPressed)
+    end)
 
     love.graphics.setFont(fonts.digitalDisco)
 end
 '''
 position = "before"
 target = "states/Menu.lua"
+
+
+[[patches]]
+[patches.pattern]
+match_indent = true
+pattern = '''
+if self.menuMusicManager then
+	self.menuMusicManager:play()
+end
+'''
+payload = '''
+-- removing this so the song doesnt skip
+'''
+position = "at"
+target = "states/NewOptionsMenu.lua"
+
+[[patches]]
+[patches.regex]
+target = "states/SongSelect.lua"
+pattern = '''self\.menuMusicManager:play\(\)\s*end'''
+position = "after"
+times = 1
+payload = '''
+if lemontweaks.jumpTo then
+    lemontweaks.jumpTo = false
+	local songName = lemontweaks.fetchedLevels[lemontweaks.current].name
+    local songArtist = lemontweaks.fetchedLevels[lemontweaks.current].artist
+
+    -- may need this function elsewhere
+	local function search(depth)
+		local i = nil
+
+        for _i, item in ipairs(self.menuItems) do
+			if item.isLevel and (item.name == songName or item.rawMetadata and item.rawMetadata.songName == songName) and item.artist == songArtist then
+				i = _i
+			end
+		end
+
+		if i then return i end
+		if depth >= 3 then return nil end
+		local here = self.currentDirectory
+		local folders = {}
+		for _, item in ipairs(self.menuItems) do
+			if not item.isLevel and not item.back and not item.isMarathon and item.filename then
+				table.insert(folders, item.filename)
+			end
+		end
+		for _, dir in ipairs(folders) do
+			self:changeDirectory(dir)
+			local found = search(depth + 1)
+			if found then return found end
+			self:changeDirectory(here) -- miss, back out and try the next folder
+		end
+	end
+
+	local found = search(0)
+
+	if found then
+		self.selection = found
+		self.subfolderSelections[self.currentDirectory] = found
+		self.previousSelection = nil
+		self.easedSelection = found
+		self:updateSelection()
+	end
+end
+'''

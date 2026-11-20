@@ -363,10 +363,7 @@ payload = '''
 
 -- Penta: Since were doing stupid stuff in here already, lets just initialize all of the lemontweaks customplayer here
 
-lemontweaks = lemontweaks or {}
-lemontweaks.nativefs = lemontweaks.nativefs or require("Mods.lemontweaks.dependencies.nativefs")
 lemontweaks.menuOpen = lemontweaks.menuOpen or false
-lemontweaks.mouseWasDown = lemontweaks.mouseWasDown or false
 lemontweaks.moveMenu = lemontweaks.moveMenu or false
 lemontweaks.tempDontAdvance = lemontweaks.tempDontAdvance or false
 lemontweaks.current = lemontweaks.current or 0
@@ -386,27 +383,6 @@ function lemontweaks.shuffle(array)
 
 	return deck
 end
-lemontweaks.helperOutlineRect = function(x, y, w, h)
-    color(1)
-    love.graphics.rectangle('fill', x - 1, y - 1, w + 2, h + 2)
-    color(0)
-    love.graphics.rectangle('fill', x, y, w, h)
-end
-lemontweaks.helperImgButton = function(sprite, x, y, run, mouseJustPressed)
-    love.graphics.draw(sprite, x, y)
-
-    local w = sprite:getWidth()
-    local h = sprite:getHeight()
-
-    local mx = mouse.rx
-    local my = mouse.ry
-
-    if mouseJustPressed then
-        if mx >= x and mx <= x + w and my >= y and my <= y + h then
-            run()
-        end
-    end
-end
 local function getAllLevels()
     local levels = {}
 	
@@ -418,18 +394,19 @@ local function getAllLevels()
 		baseGame = "levels/Finished levels"
 	}
 
-	local wsFolders = chartPaths.workshop and lemontweaks.nativefs.getDirectoryItems(chartPaths.workshop)
-	local ctFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.customs)
-	local cwipFolders = lemontweaks.nativefs.getDirectoryItems(chartPaths.customWIPs)
+	local wsFolders = chartPaths.workshop and jsrshf.nativefs.getDirectoryItems(chartPaths.workshop)
+	local ctFolders = jsrshf.nativefs.getDirectoryItems(chartPaths.customs)
+	local cwipFolders = jsrshf.nativefs.getDirectoryItems(chartPaths.customWIPs)
 	local bgFolders = love.filesystem.getDirectoryItems(chartPaths.baseGame)
 
 	local folders = {}
 
-	if wsFolders and #wsFolders > 0 then
+	if steam.User.GetSteamID and wsFolders and #wsFolders > 0 then
 		for _, folder in ipairs(wsFolders) do
 			table.insert(folders, {
 				path = chartPaths.workshop,
-				name = folder
+				name = folder,
+				type = 'workshop'
 			})
 		end
 	end
@@ -438,16 +415,18 @@ local function getAllLevels()
 		for _, folder in ipairs(ctFolders) do
 			table.insert(folders, {
 				path = chartPaths.customs,
-				name = folder
+				name = folder,
+				type = 'custom'
 			})
 		end
 	end
 
-	if #cwipFolders > 0 then
+	if cwipFolders and #cwipFolders > 0 then
 		for _, folder in ipairs(cwipFolders) do
 			table.insert(folders, {
 				path = chartPaths.customWIPs,
-				name = folder
+				name = folder,
+				type = 'wip'
 			})
 		end
 	end
@@ -456,6 +435,7 @@ print("#folders =", #folders)
 print("#bgFolders =", #bgFolders)
 
 	if #folders < 15 then
+		lemontweaks.vanillaSongsOnly = true
 		print("less than 15 folders")
 		for _, folder in ipairs(bgFolders) do
 			print("Found file: " .. folder)
@@ -473,8 +453,8 @@ print("#bgFolders =", #bgFolders)
 
 		local levelJSON = nil
 
-		for _, file in ipairs((folder.baseGame and love.filesystem.getDirectoryItems(levelPath)) or lemontweaks.nativefs.getDirectoryItems(levelPath)) do
-			if file:match("level.*%.json") then
+		for _, file in ipairs((folder.baseGame and love.filesystem.getDirectoryItems(levelPath)) or jsrshf.nativefs.getDirectoryItems(levelPath)) do
+			if file:match("^level.*%.json") then
 				levelJSON = file
 				break
 			end
@@ -482,12 +462,12 @@ print("#bgFolders =", #bgFolders)
 
 		print(levelJSON)
 
-        if levelPath and levelJSON and ((folder.baseGame and love.filesystem.getInfo(levelPath .. "/" .. levelJSON)) or lemontweaks.nativefs.getInfo(levelPath .. "/" .. levelJSON)) then
-            local levelDat = (folder.baseGame and json.decode(love.filesystem.read(levelPath .. "/" .. levelJSON))) or json.decode(lemontweaks.nativefs.read(levelPath .. "/" .. levelJSON))
+        if levelPath and levelJSON and ((folder.baseGame and love.filesystem.getInfo(levelPath .. "/" .. levelJSON)) or jsrshf.nativefs.getInfo(levelPath .. "/" .. levelJSON)) then
+            local levelDat = (folder.baseGame and json.decode(love.filesystem.read(levelPath .. "/" .. levelJSON))) or json.decode(jsrshf.nativefs.read(levelPath .. "/" .. levelJSON))
             local manifestDat
 
-            if (folder.baseGame and love.filesystem.getInfo(levelPath .. "/manifest.json")) or lemontweaks.nativefs.getInfo(levelPath .. "/manifest.json") then
-                manifestDat = (folder.baseGame and json.decode(love.filesystem.read(levelPath .. "/manifest.json"))) or json.decode(lemontweaks.nativefs.read(levelPath .. "/manifest.json"))
+            if (folder.baseGame and love.filesystem.getInfo(levelPath .. "/manifest.json")) or jsrshf.nativefs.getInfo(levelPath .. "/manifest.json") then
+                manifestDat = (folder.baseGame and json.decode(love.filesystem.read(levelPath .. "/manifest.json"))) or json.decode(jsrshf.nativefs.read(levelPath .. "/manifest.json"))
             else
                 -- old level fix
                 manifestDat = levelDat
@@ -510,7 +490,8 @@ print("#bgFolders =", #bgFolders)
 					artist = manifestDat.metadata.artist,
 					bpm = playEvent.bpm,
 					file = folder.path .. "/" .. folder.name .. "/" .. playEvent.file,
-					offset = playEvent.offset or 0
+					offset = -(playEvent.offset or 0),
+					type = folder.type
 				})
 			end
         end
@@ -545,9 +526,13 @@ function MenuMusicManager:play()
         lemontweaks.current = #lemontweaks.fetchedLevels
     end
 
-	local playerIconPadding = 5 + 16
+	lemontweaks.songArtist = (lemontweaks.fetchedLevels[lemontweaks.current].artist or "unknown"):gsub('%b[]', '')
+    lemontweaks.songName = (lemontweaks.fetchedLevels[lemontweaks.current].name or "unknown"):gsub('%b[]', '')
 
-	lemontweaks.menuX = not lemontweaks.menuOpen and -(fonts.digitalDiscoBold:getWidth((lemontweaks.fetchedLevels[lemontweaks.current].artist or "unknown"):gsub("%b[]", "") .. " - " .. (lemontweaks.fetchedLevels[lemontweaks.current].name or "unknown"):gsub("%b[]", "")) + 11 + playerIconPadding * 4) or 0
+	local playerIconPadding = 5 + 16
+	local _, _, textWidth, _ = rtf:getBoundingRect(lemontweaks.songArtist .. ' - ' .. lemontweaks.songName, 0, 34, fonts.digitalDisco, 1, 1, 99999, "center");
+
+	lemontweaks.menuX = not lemontweaks.menuOpen and -(textWidth + 11 + playerIconPadding * 4) or 0
 
 	if savedata.options.audio.playMenuMusic then
         local audioPath = 'assets/music/menuloop.ogg'
@@ -567,7 +552,7 @@ function MenuMusicManager:play()
 
 
         if audioPath:match("^%a:[/\\]") then
-            local fileData, error = lemontweaks.nativefs.newFileData(audioPath)
+            local fileData, error = jsrshf.nativefs.newFileData(audioPath)
             if not fileData then
                 error("Failed to load audio: " .. tostring(error))
             end
@@ -578,7 +563,7 @@ function MenuMusicManager:play()
         end
 
 		self.music
-			:setBPM(bpm)
+			:setBPM(bpm * (mods.lemontweaks.config.customsounds.music.halfTime and 1 or 2))
 			:setLooping(loop)
 			:play()
 

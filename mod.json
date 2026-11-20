@@ -1,74 +1,85 @@
 {
-    "enabled":true,
-    "name":"Lemon Tweaks",
-    "id":"lemontweaks",
-    "version":"3.2",
-    "author":"gooberlemonade",
-    "description":"Adds many random quality of life features and tweaks :cat2:",
-    "config":{
-        "customsounds":{
-            "music":{
-                "useCustomPlayer":true,
-                "repeatSameSong":false,
-                "caution":"default",
-                "menuloopBPM":108,
-                "menuloopOffset":0,
-                "menuloop":"default"
+    "name": "Lemon Tweaks",
+    "id": "lemontweaks",
+    "version": "4.0",
+    "author": "gooberlemonade",
+    "description": "Adds many random quality of life features and tweaks :cat2:",
+    "config": {
+        "customsounds": {
+            "music": {
+                "useCustomPlayer": true,
+                "repeatSameSong": false,
+                "caution": "default",
+                "menuloopBPM": 108,
+                "menuloopOffset": 0,
+                "menuloop": "default",
+                "halfTime": true
             },
-            "sfx":{
-                "mine":"default",
-                "barely":"default",
-                "pause":"default",
-                "side":"default",
-                "block":"default",
-                "tap":"default",
-                "click":"default",
-                "miss":"default",
-                "hold":"default",
-                "hover":"default"
+            "sfx": {
+                "mine": "default",
+                "barely": "default",
+                "pause": "default",
+                "side": "default",
+                "block": "default",
+                "tap": "default",
+                "click": "default",
+                "miss": "default",
+                "hold": "default",
+                "hover": "default"
             }
         },
-        "misc":{
-            "editor":{
-                "musicOnEditorScroll":false
+        "misc": {
+            "editor": {
+                "musicOnEditorScroll": false
             },
-            "gameMechanics":{
-                "eventExit":false,
-                "forceUI":false,
-                "staticUI":false,
-                "noGlitchUI":false
+            "gameMechanics": {
+                "eventExit": false,
+                "forceUI": false,
+                "staticUI": false,
+                "noGlitchUI": false
             },
-            "menus":{
-                "customwiplevels":false,
-                "nodiscord":false,
-                "forceOffSteamEdit":false
+            "menus": {
+                "customwiplevels": false,
+                "nodiscord": false,
+                "forceOffSteamEdit": false
             }
         },
-        "chartprog":{
-            "useVFXcolor":true,
-            "alternate":false,
-            "showProgressText":false,
-            "progressType":"Percentage",
-            "reverseDirection":false,
-            "centerBar":false,
-            "topBar":false,
-            "barHeight":6,
-            "bottomBar":false
+        "chartprog": {
+            "useVFXcolor": true,
+            "alternate": false,
+            "showProgressText": false,
+            "progressType": "Percentage",
+            "reverseDirection": false,
+            "centerBar": false,
+            "topBar": false,
+            "barHeight": 6,
+            "bottomBar": false
         },
-        "sectionskip":{
-            "enabled":false,
-            "skipthreashold":3000,
-            "skipholdlength":500,
-            "skipjumpdist":2000
+        "sectionskip": {
+            "enabled": false,
+            "skipthreashold": 3000,
+            "skipholdlength": 500,
+            "skipjumpdist": 2000
         },
-        "hsv": {
-            "misses":false,
-            "barelies":false,
-            "hits":false,
-            "font":"main",
-            "size":1,
-            "position":"Above Cranky",
-            "duration": 250
+        "hsv":  {
+            "misses": false,
+            "barelies": false,
+            "hits": false,
+            "taps": true,
+            "missText": "MISS",
+            "barelyText": "BARELY",
+            "hitText": "PERFECT",
+            "font": "digitalDisco",
+            "size": 1,
+            "position": "At Object",
+            "duration": 250,
+            "animation": {
+                "rotation": 15,
+                "position": 10,
+                "initVel": -1,
+                "gravity": 8,
+                "ease": "inCubic"
+            }
         }
     }
 }

@@ -11,6 +11,8 @@ target = "main.lua"
 pattern = '''local gameDirectory = love.filesystem.getSourceBaseDirectory()'''
 position = "before"
 payload = '''
+lemontweaks = {}
+
 local LT_CS_required = { 
     "customsounds",
     "customsounds/sfx",

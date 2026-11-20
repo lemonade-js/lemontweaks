@@ -9,8 +9,8 @@ priority = 0
 
 [[patches]]
 [patches.pattern]
-target = "main.lua"
-pattern = '''cs = bs.load(project.initState)'''
+target = "states/Menu.lua"
+pattern = '''local playedLevelsJson = LevelManager:loadPlayedLevels()'''
 position = "after"
 payload = '''
 local customsfx = {
@@ -26,9 +26,13 @@ local customsfx = {
     { label = "Miss", value = "miss", fallback = "assets/sfx/mine.ogg" }
 }
 
-local function replaceSounds()
+function replaceSounds()
     for i = 1, #customsfx, 1 do
         local audioPath = customsfx[i].fallback
+
+        for meowmeow in pairs(mods) do
+            print(meowmeow)
+        end
 
         if mods.lemontweaks.config.customsounds.sfx[customsfx[i].value] ~= "default" and love.filesystem.exists("Mods/lemontweaks/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.lemontweaks.config.customsounds.sfx[customsfx[i].value]) then
             audioPath = "Mods/lemontweaks/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.lemontweaks.config.customsounds.sfx[customsfx[i].value]

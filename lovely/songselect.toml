@@ -1,0 +1,18 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+
+
+# better sorting
+
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''return string.lower(a.name) < string.lower(b.name)'''
+position = "at"
+payload = '''
+return string.lower(a.name:gsub("%b[]", "")) < string.lower(b.name:gsub("%b[]", ""))
+'''
+match_indent = true

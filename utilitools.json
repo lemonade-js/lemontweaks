@@ -1,0 +1,9 @@
+{ 
+    "dependencies": { 
+        "jsrshf": { 
+            "comment": "",
+            "reason": "Required functions", 
+            "versions": [ [">=", "1.0.0"] ] 
+        }
+    } 
+}

@@ -13,9 +13,67 @@ payload = '''
 cs.pMisses = 0
 cs.pBarelies = 0
 cs.pCombo = 0
-cs.HSVbounce = 0
-cs.HSVtext = ""
-cs.HSVtimer = 0
+cs.HSVmarkers = {}
+cs.HSVtimings = {
+    markers = {},
+    timings = {}
+}
+cs.HSVAVGtiming = 0
+
+if not cs.addedDithers then
+    cs.addedDithers = true
+
+    for i = 0, 16 do
+        sprites.forceAdd(sprites.dither, 'Mods/lemontweaks/assets/ditherpatterns/d' .. i .. '.png')
+    end
+end
+
+function cs.createHSVtext(text, angle)
+    local HSVwidth = fonts[mods.lemontweaks.config.hsv.font]:getWidth(text) * mods.lemontweaks.config.hsv.size
+
+    local HSVposition = {
+        ["Above Cranky"] = {
+            x = cs.p.x - (HSVwidth / 2),
+            y = cs.p.y - 60
+        },
+        ["Under Combo"] = {
+            x = project.res.x / 2 - 1 + cs.vfx.comboX - (HSVwidth / 2),
+            y = 48 + cs.vfx.comboY
+        },
+        ["Above Cursor"] = {
+            x = mouse.rx - (HSVwidth / 2),
+            y = mouse.ry - 16
+        },
+        ["At Object"] = {
+            x = cs.p.x - (fonts[mods.lemontweaks.config.hsv.font]:getWidth(text) * mods.lemontweaks.config.hsv.size / 2) + (math.sin(math.rad((angle or 0) + cs.objectRotation)) * ((cs.p.paddleDistance + cs.p.bodyRadius + 2 + HSVwidth / 2) * cs.p.drawScale)),
+            y = cs.p.y - (fonts[mods.lemontweaks.config.hsv.font]:getHeight() * mods.lemontweaks.config.hsv.size / 2) - (math.cos(math.rad((angle or 0) + cs.objectRotation)) * ((cs.p.paddleDistance + cs.p.bodyRadius + 2 + HSVwidth / 2) * cs.p.drawScale))
+        }
+    }
+
+    table.insert(cs.HSVmarkers, {
+        text = text, 
+        vel = mods.lemontweaks.config.hsv.animation.initVel,
+        rot = 0,
+        ditherPercent = 1,
+        grav = mods.lemontweaks.config.hsv.animation.gravity * math.random(9, 11) / 10,
+        pos = {
+            x = HSVposition[mods.lemontweaks.config.hsv.position].x,
+            y = HSVposition[mods.lemontweaks.config.hsv.position].y,
+            rand = math.random(-mods.lemontweaks.config.hsv.animation.position, mods.lemontweaks.config.hsv.animation.position)
+        }
+    })
+
+    flux.to(cs.HSVmarkers[#cs.HSVmarkers], mods.lemontweaks.config.hsv.duration / 20, {
+        rot = math.random(-mods.lemontweaks.config.hsv.animation.rotation, mods.lemontweaks.config.hsv.animation.rotation),
+        ditherPercent = 0
+    }):ease(mods.lemontweaks.config.hsv.animation.ease)
+
+    flux.to(cs.HSVmarkers[#cs.HSVmarkers].pos, mods.lemontweaks.config.hsv.duration / 20, {
+        x = cs.HSVmarkers[#cs.HSVmarkers].pos.x + cs.HSVmarkers[#cs.HSVmarkers].pos.rand
+    }):ease(mods.lemontweaks.config.hsv.animation.ease):oncomplete(function()
+        if cs.HSVmarkers and #cs.HSVmarkers > 0 then table.remove(cs.HSVmarkers, 1) end
+    end)
+end
 '''
 
 [[patches]]
@@ -31,64 +89,127 @@ if mods.lemontweaks.config.hsv.misses then
     if cs.misses > cs.pMisses then
         cs.pCombo = cs.combo
         cs.pMisses = cs.misses
-        cs.HSVtimer = mods.lemontweaks.config.hsv.duration
-        cs.HSVtext = "MISS"
 
-        cs.HSVbounce = 5
-        flux.to(cs, 5, {HSVbounce=0}):ease("linear")
+        cs.createHSVtext(mods.lemontweaks.config.hsv.missText, lemontweaks.hsvInfo and lemontweaks.hsvInfo.missAngle)
     end
 end
 
 if mods.lemontweaks.config.hsv.barelies then
     if cs.barelies > cs.pBarelies then
         cs.pBarelies = cs.barelies
-        cs.HSVtimer = mods.lemontweaks.config.hsv.duration
-        cs.HSVtext = "BARELY"
 
-        cs.HSVbounce = 5
-        flux.to(cs, 5, {HSVbounce=0}):ease("linear")
+        cs.createHSVtext(mods.lemontweaks.config.hsv.barelyText, lemontweaks.hsvInfo and lemontweaks.hsvInfo.missAngle)
     end
 end
 
 if mods.lemontweaks.config.hsv.hits then
     if cs.combo > cs.pCombo then
         cs.pCombo = cs.combo
-        cs.HSVtimer = mods.lemontweaks.config.hsv.duration
-        cs.HSVtext = "PERFECT"
 
-        cs.HSVbounce = 5
-        flux.to(cs, 5, {HSVbounce=0}):ease("linear")
+        cs.createHSVtext(mods.lemontweaks.config.hsv.hitText, lemontweaks.hsvInfo and lemontweaks.hsvInfo.missAngle)
     end
 end
 
-if cs.HSVtimer > 0 then
-    cs.HSVtimer = cs.HSVtimer - (love.timer.getDelta() * 1000)
-elseif cs.HSVtext ~= "" then
-    cs.HSVtext = ""
+-- update markers
+love.graphics.setFont(fonts[mods.lemontweaks.config.hsv.font])
+
+if mods.lemontweaks.config.hsv.taps then
+    love.graphics.rectangle('fill', project.res.x / 2 - 64, 280, 128, 2)
+    love.graphics.rectangle('fill', project.res.x / 2 - 1 + cs.HSVAVGtiming, 280 - 5, 2, 12)
+
+    for _, marker in ipairs(cs.HSVtimings.markers) do
+        setDither(math.floor(marker.ditherPercent * 17 + 0.5) + 3)
+
+        color(cs.vfx.uiColor)
+
+        love.graphics.rectangle('fill', project.res.x / 2 - 1 + marker.timing, 280 - 3, 2, 8)
+
+        setDither()
+    end
 end
 
-local HSVwidth = fonts[mods.lemontweaks.config.hsv.font]:getWidth(cs.HSVtext) * mods.lemontweaks.config.hsv.size
+for _, marker in ipairs(cs.HSVmarkers) do
+    marker.vel = marker.vel + marker.grav * love.timer.getDelta()
+    marker.pos.y = marker.pos.y + marker.vel
 
-local HSVposition = {
-    ["Above Cranky"] = {
-        x = cs.p.x - (HSVwidth / 2),
-        y = cs.p.y - 60
-    },
-    ["Under Combo"] = {
-        x = project.res.x/2 - 1 + cs.vfx.comboX - (HSVwidth / 2),
-        y = 48 + cs.vfx.comboY
-    },
-    ["Above Cursor"] = {
-        x = mouse.rx - (HSVwidth / 2),
-        y = mouse.ry - 16
-    }
-}
+    setDither(math.floor(marker.ditherPercent * 17 + 0.5) + 3)
 
-love.graphics.setFont(fonts[mods.lemontweaks.config.hsv.font])
-love.graphics.print(
-    cs.HSVtext, 
-    HSVposition[mods.lemontweaks.config.hsv.position].x, 
-    HSVposition[mods.lemontweaks.config.hsv.position].y - cs.HSVbounce, 
-    0, mods.lemontweaks.config.hsv.size, mods.lemontweaks.config.hsv.size
-)
+    color(cs.vfx.uiColor)
+
+    love.graphics.print(marker.text, marker.pos.x, marker.pos.y, marker.rot * math.pi / 180, mods.lemontweaks.config.hsv.size, mods.lemontweaks.config.hsv.size)
+
+    setDither()
+end
+'''
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''function GameManager:addToScore(hits,barely,mine,beat)'''
+position = "after"
+match_indent = true
+payload = '''
+lemontweaks.hsvInfo = lemontweaks.hsvInfo or {}
+if not mine and cs.p then lemontweaks.hsvInfo.hitAngle = cs.p.angle end
+'''
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''function GameManager:handleMiss(hits,mine)'''
+position = "after"
+match_indent = true
+payload = '''
+lemontweaks.hsvInfo = lemontweaks.hsvInfo or {}
+lemontweaks.hsvInfo.missAngle = lemontweaks.hsvInfo.noteAngle or (cs.p and cs.p.angle)
+lemontweaks.hsvInfo.noteAngle = nil
+'''
+
+[[patches]]
+[patches.pattern]
+target = "obj/notes/Block.lua"
+pattern = '''function Block:onMiss(mine)'''
+position = "after"
+match_indent = true
+payload = '''
+lemontweaks.hsvInfo = lemontweaks.hsvInfo or {}
+lemontweaks.hsvInfo.noteAngle = self.angle
+'''
+
+# timing indicator
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''table.insert(cs.tapTiming,self:beatToMs(beat - cs.cBeat + msOffset))'''
+position = "after"
+match_indent = true
+payload = '''
+if mods.lemontweaks.config.hsv.taps then
+	table.insert(cs.HSVtimings.markers, { ditherPercent = 1, timing = -self:beatToMs(beat - cs.cBeat + msOffset) })
+    table.insert(cs.HSVtimings.timings, -self:beatToMs(beat - cs.cBeat + msOffset))
+
+    if #cs.HSVtimings.timings > 20 then table.remove(cs.HSVtimings.timings, 1) end
+
+    flux.to(cs, mods.lemontweaks.config.hsv.duration / 20, { HSVAVGtiming = jsrshf.average(cs.HSVtimings.timings) }):ease('outCubic')
+
+    flux.to(cs.HSVtimings.markers[#cs.HSVtimings.markers], 2000 / 20, {
+        ditherPercent = 0
+    }):ease(mods.lemontweaks.config.hsv.animation.ease):oncomplete(function()
+        if cs.HSVtimings.markers and #cs.HSVtimings.markers > 0 then table.remove(cs.HSVtimings.markers, 1) end
+    end)
+
+    print('meowwwww :33' .. cs.HSVAVGtiming)
+end
+'''
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = "local pressed, released = self:getTapInputs()"
+position = "after"
+match_indent = true
+times = 1
+payload = '''
+if pressed then print('[dbg] tap pressed, queued taps:', #cs.taps, 'mode:', savedata.options.accessibility.taps, 'tooly:', mods.beattools.config.tooly) end
 '''

@@ -1,45 +1,6 @@
 sm = require('preload.sounds')
 te = require('lib.tesound')
 
-local function copyTable(t)
-    if type(t) ~= "table" then return t end
-    local new = {}
-    for k, v in pairs(t) do
-        if type(v) == "table" then
-            new[k] = copyTable(v)
-        else
-            new[k] = v
-        end
-    end
-    return new
-end
-
-local function compareTable(a, b)
-    if a == b then return true end
-    if type(a) ~= "table" or type(b) ~= "table" then return false end
-
-    for k, v in pairs(a) do
-        local bv = b[k]
-        if type(v) == "table" and type(bv) == "table" then
-            if not compareTable(v, bv) then
-                return false
-            end
-        elseif v ~= bv then
-            return false
-        end
-    end
-
-    for k in pairs(b) do
-        if a[k] == nil then return false end
-    end
-
-    return true
-end
-
-if not mod.sConfigState then
-    mod.sConfigState = copyTable(mod.config.customsounds.music)
-end
-
 if imgui.TreeNode_Str("Custom Player") then
     imgui.SetWindowFontScale(2)
     imgui.Text("Custom Player")
@@ -60,6 +21,9 @@ if imgui.TreeNode_Str("Custom Player") then
 
     mod.config.customsounds.music.repeatSameSong = helpers.InputBool("Repeat Single Song", mod.config.customsounds.music.repeatSameSong)
 	helpers.imguiHelpMarker("Prevents the player from automatically advancing the song")
+
+    mod.config.customsounds.music.halfTime = helpers.InputBool("Use BPM Half Time", mod.config.customsounds.music.halfTime)
+    helpers.imguiHelpMarker("Uses the BPM's half time (vanilla default: true)")
 
     imgui.NewLine()
     imgui.Separator()
@@ -325,7 +289,8 @@ if imgui.TreeNode_Str("Custom Sounds") then
 					end
                     helpers.imguiHelpMarker("Randomly shuffles songs from installed maps, no need to pick your favorite")
 
-                    imgui.NewLine()
+                    mod.config.customsounds.music.halfTime = helpers.InputBool("Use BPM Half Time", mod.config.customsounds.music.halfTime)
+                    helpers.imguiHelpMarker("Uses the BPM's half time (vanilla default: true)")
 
                     if (mod.config.customsounds.music.useCustomPlayer) then
                         imgui.BeginDisabled();
@@ -359,7 +324,7 @@ if imgui.TreeNode_Str("Hit Score Visualizer") then
     imgui.SetWindowFontScale(2)
     imgui.Text("Hit Score Visualizer")
     imgui.SetWindowFontScale(1)
-    imgui.Text("Shows visuals when you hit, get a barely, or miss a note in the expanded HUD")
+    imgui.Text("Shows visuals when you hit, get a barely, or miss a note\nin the expanded HUD")
 
     imgui.NewLine()
     imgui.Separator()
@@ -368,6 +333,17 @@ if imgui.TreeNode_Str("Hit Score Visualizer") then
     mod.config.hsv.misses = helpers.InputBool("Show Misses", mod.config.hsv.misses)
     mod.config.hsv.barelies = helpers.InputBool("Show Barelies", mod.config.hsv.barelies)
     mod.config.hsv.hits = helpers.InputBool("Show Hits", mod.config.hsv.hits)
+    mod.config.hsv.taps = helpers.InputBool("Show Tap Accuracy", mod.config.hsv.taps)
+    helpers.imguiHelpMarker("Shows more detailed text for hits, such as \"early\" and \"late\"")
+
+    imgui.NewLine()
+
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.missText = helpers.InputText("Miss Text", mod.config.hsv.missText)
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.barelyText = helpers.InputText("Barely Text", mod.config.hsv.barelyText)
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.hitText = helpers.InputText("Hit Text", mod.config.hsv.hitText)
 
     imgui.NewLine()
 
@@ -386,7 +362,7 @@ if imgui.TreeNode_Str("Hit Score Visualizer") then
 
     helpers.imguiHelpMarker("The font the visualizer uses")
 
-    local positionTypes = { "Above Cranky", "Under Combo", "Above Cursor" }
+    local positionTypes = { "Above Cranky", "Under Combo", "At Object", "Above Cursor" }
 
     imgui.SetNextItemWidth(120)
 	if imgui.BeginCombo("Position", mod.config.hsv.position) then
@@ -407,9 +383,43 @@ if imgui.TreeNode_Str("Hit Score Visualizer") then
     mod.config.hsv.size = helpers.InputFloat("Size", mod.config.hsv.size)
     helpers.imguiHelpMarker("The size of the visualizer text")
 
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
     imgui.SetNextItemWidth(120)
-    mod.config.hsv.duration = helpers.InputInt("Text Duration (ms)", mod.config.hsv.duration)
-    helpers.imguiHelpMarker("How long the text shows before disappearing in milliseconds")
+    mod.config.hsv.duration = helpers.InputInt("Animation Duration (ms)", mod.config.hsv.duration)
+    helpers.imguiHelpMarker("How long the text shows in milliseconds")
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.animation.rotation = helpers.InputInt("Random Rotation", mod.config.hsv.animation.rotation)
+    helpers.imguiHelpMarker("How much the text should rotate when falling")
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.animation.position = helpers.InputInt("Random X Position", mod.config.hsv.animation.position)
+    helpers.imguiHelpMarker("How much the text should move when falling")
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.animation.gravity = helpers.InputInt("Gravity", mod.config.hsv.animation.gravity)
+    helpers.imguiHelpMarker("Controlls the gravity of the falling text (can be negative lol)")
+    imgui.SetNextItemWidth(120)
+    mod.config.hsv.animation.initVel = helpers.InputInt("Initial Y Velocity", mod.config.hsv.animation.initVel)
+    helpers.imguiHelpMarker("Allows for adding a \"jump\" effect or have it fly straight down")
+
+    local easings = { "linear", "inSine", "outSine", "inOutSine", "inQuad", "outQuad", "inOutQuad", "inCubic", "outCubic", "inOutCubic", "inQuart", "outQuart", "inOutQuart", "inQuint", "outQuint", "inOutQuint", "inExpo", "outExpo", "inOutExpo", "inCirc", "outCirc", "inOutCirc", "inSquaredCirc", "outSquaredCirc", "inOutSquaredCirc", "inBack", "outBack", "inOutBack", "inElastic", "outElastic", "inOutElastic", "inBounce", "outBounce", "inOutBounce" }
+
+    imgui.SetNextItemWidth(120)
+	if imgui.BeginCombo("Easing", mod.config.hsv.animation.ease) then
+        for i, v in ipairs(easings) do
+            local isSelected = (v == mod.config.hsv.animation.ease)
+            if imgui.Selectable_Bool(v, isSelected) then
+                mod.config.hsv.animation.ease = v
+            end
+        end
+        imgui.EndCombo()
+    end
+
+    imgui.NewLine()
+
+    mod.config.hsv.taps = helpers.InputBool("Don't Fade", mod.config.hsv.taps)
+    helpers.imguiHelpMarker("Removes the dithering effect from the animation")
 
     imgui.NewLine()
     imgui.Separator()
@@ -459,7 +469,7 @@ if imgui.TreeNode_Str("Miscellaneous") then
     imgui.SetWindowFontScale(2)
     imgui.Text("Miscellaneous")
     imgui.SetWindowFontScale(1)
-    imgui.Text("Some random freatures without enough options for its own category")
+    imgui.Text("Some random freatures without enough options for its own\ncategory")
 
     imgui.NewLine()
     imgui.Separator()

@@ -51,7 +51,7 @@ if mods.lemontweaks.config.misc.editor.musicOnEditorScroll then
 		local offset = 0
 		local playEventBeat = 0
 		for _, v in ipairs(self.level.events) do
-			if (v.type == "play" or v.type == "setTempo") and v.time <= self.editorBeat then
+			if (v.type == "play" or v.type == "setBPM") and v.time <= self.editorBeat then
 				bpm = v.bpm
 				if v.type == "play" then playEventBeat = v.time end
 				if v.offset then offset = v.offset end
@@ -281,6 +281,36 @@ if mods.lemontweaks.config.misc.menus.customwiplevels then
 		self:checkTutorials(goToCustomWIPs)	
 	end, 17, nil, sprites.menu.wipcustoms)
 end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''if self.currentDirectory == 'Custom Levels/' then'''
+position = "at"
+payload = '''
+if self.currentDirectory == 'Custom Levels/' or self.currentDirectory == 'Custom WIP Levels/' then
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''menuItem.openCustomsFolder = true'''
+position = "after"
+payload = '''
+menuItem.openWIPCustomsFolder = self.currentDirectory == 'Custom WIP Levels/'
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''love.system.openURL("file://"..love.filesystem.getSaveDirectory()..'/'..'Custom Levels') -- remember me to come here later'''
+position = "at"
+payload = '''
+love.system.openURL("file://"..love.filesystem.getSaveDirectory()..'/'..'Custom' .. (self.menuItems[self.selection].openWIPCustomsFolder and ' WIP ' or ' ') .. 'Levels') -- remember me to come here later
 '''
 match_indent = true
 

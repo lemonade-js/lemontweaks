@@ -19,3 +19,17 @@ replaceSound = function(self, sound, newPath)
     self[sound] = love.sound.newSoundData(newPath)
 end,
 '''
+
+[[patches]]
+[patches.pattern]
+target = "preload/sprites.lua"
+pattern = '''
+sprites.optionsMenu = {
+'''
+position = "before"
+match_indent = true
+payload = '''
+function sprites.forceAdd (tbl, path)
+    table.insert(tbl, love.graphics.newImage(path))
+end
+'''
