@@ -196,7 +196,7 @@ if mods.lemontweaks.config.hsv.taps then
     flux.to(cs.HSVtimings.markers[#cs.HSVtimings.markers], 2000 / 20, {
         ditherPercent = 0
     }):ease(mods.lemontweaks.config.hsv.animation.ease):oncomplete(function()
-        if cs.HSVtimings.markers and #cs.HSVtimings.markers > 0 then table.remove(cs.HSVtimings.markers, 1) end
+        if cs.HSVtimings and cs.HSVtimings.markers and #cs.HSVtimings.markers > 0 then table.remove(cs.HSVtimings.markers, 1) end
     end)
 
     print('meowwwww :33' .. cs.HSVAVGtiming)
